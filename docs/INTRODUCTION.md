@@ -9,7 +9,7 @@
 
 [English](INTRODUCTION.en.md) | 简体中文
 
-[快速开始](#-快速开始) · [架构](#-架构) · [支持范围](#-支持范围) · [发布说明](https://gitee.com/rvocs/rvocs-main/blob/master/RELEASENOTES.md) · [贡献](#-参与贡献)
+[快速开始](#-快速开始) · [架构](#-架构) · [支持范围](#-支持范围) · [发布说明](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) · [贡献](#-参与贡献)
 
 </div>
 
@@ -69,7 +69,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 └─────────────────────────────────────────────────────────────┘
 ```
 
-设计取舍与 target 接入机制详见 [docs/ARCHITECTURE.md](https://gitee.com/rvocs/rvocs-main/blob/master/docs/ARCHITECTURE.md)。
+设计取舍与 target 接入机制详见 [docs/ARCHITECTURE.md](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md)。
 
 ## 📦 支持范围
 
@@ -101,7 +101,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 ### ① 获取统一入口并自检
 
 ```bash
-git clone https://gitee.com/rvocs/rvocs-main.git
+git clone https://github.com/RVOCs-org/rvocs-main.git
 cd rvocs-main
 ./rvocs.sh --doctor        # 环境自检：PASS/WARN/FAIL，并给出下一步命令
 ```
@@ -140,24 +140,24 @@ curl http://localhost:8000/v1/chat/completions \
   -d '{"model": "Qwen3-8B", "messages": [{"role": "user", "content": "你好，RVOCs"}]}'
 ```
 
-更多路径（GPU 冒烟、离线安装、代理模式）见 [docs/QUICKSTART.md](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUICKSTART.md)。
+更多路径（GPU 冒烟、离线安装、代理模式）见 [docs/QUICKSTART.md](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUICKSTART.md)。
 
 ## 📚 文档
 
 | 文档 | 内容 |
 |---|---|
-| [快速开始](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUICKSTART.md) | 分场景上手：自检、驱动、镜像、部署 |
-| [CLI 参考](https://gitee.com/rvocs/rvocs-main/blob/master/docs/CLI.md) | 全部动作、参数与环境变量 |
-| [开发架构](https://gitee.com/rvocs/rvocs-main/blob/master/docs/ARCHITECTURE.md) | 分层设计与 target 接入取舍 |
-| [仓库说明](https://gitee.com/rvocs/rvocs-main/blob/master/docs/REPOS.md) | 各仓库职责与产物 |
-| [适配问题记录](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUIRKS.md) | RISC-V 已知问题与处置 |
-| [发布说明](https://gitee.com/rvocs/rvocs-main/blob/master/RELEASENOTES.md) | 已发布产物与上游基线 |
+| [快速开始](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUICKSTART.md) | 分场景上手：自检、驱动、镜像、部署 |
+| [CLI 参考](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/CLI.md) | 全部动作、参数与环境变量 |
+| [开发架构](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md) | 分层设计与 target 接入取舍 |
+| [仓库说明](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/REPOS.md) | 各仓库职责与产物 |
+| [适配问题记录](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUIRKS.md) | RISC-V 已知问题与处置 |
+| [发布说明](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) | 已发布产物与上游基线 |
 
 ## 🤝 参与贡献
 
 提交问题、复现记录、架构补丁或新的 target——把可验证的工程经验留在公开的代码与文档中。
 
-- **反馈问题**：[rvocs-main Issues](https://gitee.com/rvocs/rvocs-main/issues)
+- **反馈问题**：[rvocs-main Issues](https://github.com/RVOCs-org/rvocs-main/issues)
 - **新增加速器**：按 `rvocs-hcs-{vendor}` 建仓库，host/ + stack/ 分部件，声明能力矩阵接入
 - **基线升级**：改 `manifest.yaml` 的 ref → `baseline.sh apply` → 重放补丁 → 提交（详见各仓库 README）
 
@@ -169,6 +169,6 @@ curl http://localhost:8000/v1/chat/completions \
 
 **RVOCs · RISC-V Open Computing System · 元石智算**
 
-[Gitee 组织](https://gitee.com/rvocs) · 让下一次适配，从已有成果开始。
+[Gitee 组织](https://github.com/RVOCs-org) · 让下一次适配，从已有成果开始。
 
 </div>

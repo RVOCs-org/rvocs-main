@@ -50,9 +50,9 @@ repo_dirs_for() {
 # canonical id -> default remote (cloned on first use; override with RVOCS_<ID>_URL)
 repo_url() {
   case "$1" in
-    rvocs)             echo "${RVOCS_URL:-https://gitee.com/rvocs/rvocs-main.git}" ;;
-    tt-host|tt-stack)  echo "${RVOCS_TENSTORRENT_URL:-https://gitee.com/rvocs/rvocs-hcs-tenstorrent.git}" ;;
-    therock)           echo "${RVOCS_THEROCK_URL:-https://gitee.com/rvocs/rvocs-hcs-amd.git}" ;;
+    rvocs)             echo "${RVOCS_URL:-https://github.com/RVOCs-org/rvocs-main.git}" ;;
+    tt-host|tt-stack)  echo "${RVOCS_TENSTORRENT_URL:-https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git}" ;;
+    therock)           echo "${RVOCS_THEROCK_URL:-https://github.com/RVOCs-org/rvocs-hcs-amd.git}" ;;
     *)                 return 1 ;;
   esac
 }

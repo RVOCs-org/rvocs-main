@@ -21,7 +21,7 @@
 
 - 镜像 registry 前缀：`swr.cn-east-3.myhuaweicloud.com/cloud-mdgx/`（公开，无需登录）；
   `--download` 拉取后只保留短名（retag 后会自动删掉 registry 前缀的 tag，`docker images` 里只出现一个 `rvocs-...` 条目）
-- 交付包发布页：<https://gitee.com/rvocs/rvocs-hcs-tenstorrent/releases/tag/v0.1.0>
+- 交付包获取：`./rvocs.sh --target tt-host --arch <arch> --download`（`.deb` 资产暂托管在 Gitee Releases，迁移到 GitHub Releases 后 `RVOCS_TT_HOST_RELEASES_*` 一并切换）
 
 ### 1. `rvocs-vllm-tt-*`（Tenstorrent 栈）
 

@@ -41,7 +41,7 @@ project:
 targets:
   tt-host:
     role: host dependencies (kernel driver + tools + hugepages + udev)
-    url: https://gitee.com/rvocs/rvocs-hcs-tenstorrent.git   # the host part of the Tenstorrent vendor repository
+    url: https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git   # the host part of the Tenstorrent vendor repository
     dirs: [rvocs-hcs-tenstorrent]
     part: host
     env_override: RVOCS_TENSTORRENT_DIR
@@ -56,7 +56,7 @@ targets:
 
   tt-stack:
     role: TT-Metal + vLLM inference image (device Tenstorrent cards)
-    url: https://gitee.com/rvocs/rvocs-hcs-tenstorrent.git
+    url: https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git
     dirs: [rvocs-hcs-tenstorrent]
     part: stack
     env_override: RVOCS_TENSTORRENT_DIR
@@ -72,7 +72,7 @@ targets:
 
   therock:
     role: ROCm/TheRock + torch/triton/vLLM inference image (device AMD GPUs)
-    url: https://gitee.com/rvocs/rvocs-hcs-amd.git
+    url: https://github.com/RVOCs-org/rvocs-hcs-amd.git
     dirs: [rvocs-hcs-amd]
     env_override: RVOCS_THEROCK_DIR
     clone_branch: master

@@ -167,9 +167,9 @@
 
 | target | 地址 | clone 分支 |
 | --- | --- | --- |
-| `tt-host` | `https://gitee.com/rvocs/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
-| `tt-stack` | `https://gitee.com/rvocs/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
-| `therock` | `https://gitee.com/rvocs/rvocs-hcs-amd.git` | 所有架构统一 `master`（单分支） |
+| `tt-host` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
+| `tt-stack` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
+| `therock` | `https://github.com/RVOCs-org/rvocs-hcs-amd.git` | 所有架构统一 `master`（单分支） |
 
 克隆到的是**上层仓库**（各子仓库的 `upstream/` 代码由它自己的 `fetch` 阶段拉取），
 所以首次执行只会下载编排脚本与补丁层，不会一次拉几十 GB 源码。

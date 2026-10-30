@@ -9,7 +9,7 @@ patches, build pipelines and deliverable images. RISC-V is the starting point, n
 
 English | [简体中文](INTRODUCTION.md)
 
-[Quick start](#-quick-start) · [Architecture](#-architecture) · [Support](#-support-matrix) · [Release notes](https://gitee.com/rvocs/rvocs-main/blob/master/RELEASENOTES.md) · [Contributing](#-contributing)
+[Quick start](#-quick-start) · [Architecture](#-architecture) · [Support](#-support-matrix) · [Release notes](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) · [Contributing](#-contributing)
 
 </div>
 
@@ -85,7 +85,7 @@ device software stack:
 ```
 
 Design trade-offs and the target integration mechanism:
-[docs/ARCHITECTURE.md](https://gitee.com/rvocs/rvocs-main/blob/master/docs/ARCHITECTURE.md).
+[docs/ARCHITECTURE.md](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md).
 
 ## 📦 Support matrix
 
@@ -122,7 +122,7 @@ The eight-card server is a hardware capability; multi-card validation is in prog
 ### ① Fetch the entry point and self-check
 
 ```bash
-git clone https://gitee.com/rvocs/rvocs-main.git
+git clone https://github.com/RVOCs-org/rvocs-main.git
 cd rvocs-main
 ./rvocs.sh --doctor        # PASS/WARN/FAIL plus the commands to run next
 ```
@@ -164,25 +164,25 @@ curl http://localhost:8000/v1/chat/completions \
 ```
 
 More paths (GPU smoke test, offline install, proxy modes):
-[docs/QUICKSTART.md](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUICKSTART.md).
+[docs/QUICKSTART.md](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUICKSTART.md).
 
 ## 📚 Documentation
 
 | Document | Content |
 |---|---|
-| [Quick start](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUICKSTART.md) | scenario walkthroughs: self-check, drivers, images, deployment |
-| [CLI reference](https://gitee.com/rvocs/rvocs-main/blob/master/docs/CLI.md) | every action, option and environment variable |
-| [Architecture](https://gitee.com/rvocs/rvocs-main/blob/master/docs/ARCHITECTURE.md) | layering and target integration trade-offs |
-| [Repositories](https://gitee.com/rvocs/rvocs-main/blob/master/docs/REPOS.md) | responsibilities and artifacts per repository |
-| [Known quirks](https://gitee.com/rvocs/rvocs-main/blob/master/docs/QUIRKS.md) | RISC-V issues and workarounds |
-| [Release notes](https://gitee.com/rvocs/rvocs-main/blob/master/RELEASENOTES.md) | published artifacts and upstream baselines |
+| [Quick start](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUICKSTART.md) | scenario walkthroughs: self-check, drivers, images, deployment |
+| [CLI reference](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/CLI.md) | every action, option and environment variable |
+| [Architecture](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md) | layering and target integration trade-offs |
+| [Repositories](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/REPOS.md) | responsibilities and artifacts per repository |
+| [Known quirks](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUIRKS.md) | RISC-V issues and workarounds |
+| [Release notes](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) | published artifacts and upstream baselines |
 
 ## 🤝 Contributing
 
 File an issue, share a reproduction, submit an architecture patch or a new target — keep
 verifiable engineering experience in public code and documentation.
 
-- **Issues**: [rvocs-main issues](https://gitee.com/rvocs/rvocs-main/issues)
+- **Issues**: [rvocs-main issues](https://github.com/RVOCs-org/rvocs-main/issues)
 - **New accelerator**: create `rvocs-hcs-{vendor}` with `host/` + `stack/`, then declare the
   capability matrix in the target registry
 - **Baseline bump**: edit `ref` in `manifest.yaml` → `baseline.sh apply` → replay patches →
@@ -197,6 +197,6 @@ components keep their own licenses.
 
 **RVOCs · RISC-V Open Computing System · Yuanshi Zhisuan**
 
-[Gitee organization](https://gitee.com/rvocs) · Let the next port start from what already works.
+[GitHub organization](https://github.com/RVOCs-org) · Let the next port start from what already works.
 
 </div>
