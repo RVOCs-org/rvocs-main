@@ -1,0 +1,14 @@
+# Build workspace and artifacts (directories keep a .gitkeep note; contents are not committed)
+/work/
+/dist/
+/artifacts/
+
+# Runtime logs and state stamps
+*.log
+.patch-state/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

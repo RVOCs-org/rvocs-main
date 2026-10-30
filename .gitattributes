@@ -1,0 +1,10 @@
+# Scripts must stay executable on Linux: force LF so a Windows checkout cannot introduce CRLF
+* text=auto eol=lf
+*.sh          text eol=lf
+*.patch       text eol=lf
+*.yaml        text eol=lf
+*.md          text eol=lf
+*.png         binary
+*.pptx        binary
+*.zst         binary
+*.txz         binary
