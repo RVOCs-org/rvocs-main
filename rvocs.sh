@@ -22,7 +22,7 @@
 #
 # Targets (--target; multiple separated by / or ,):
 #   tt-host   host dependencies (tt-kmd / tt-smi / tt-flash / tt-topology / hugepages)
-#   tenstorrent    TT-Metal + vLLM inference image (device: Tenstorrent cards)
+#   tt-stack       TT-Metal + vLLM inference image (device: Tenstorrent cards)
 #   therock        ROCm/TheRock + vLLM inference image (device: AMD GPUs)
 #   rvocs          this repository itself (version/status/doctor/bom only)
 #   all            all of the above
@@ -50,10 +50,10 @@
 #   ./rvocs.sh --target all --doctor
 #   ./rvocs.sh --target therock --arch x86 --build -- --gpu r9700 --jobs 32
 #
-# Notes: sub-repos are reused as sibling directories (default ../tenstorrent, ../amd-the-rock,
-#        ../tt-host*). When missing they are cloned on demand by the action that needs them
-#        (branch chosen by --arch; riscv uses the porting branch). Use RVOCS_SIBLINGS_DIR /
-#        RVOCS_<ID>_DIR to relocate, --no-clone to disable fetching. This script only translates
+# Notes: sub-repos are reused as sibling directories (default ../rvocs-hcs-tenstorrent,
+#        ../rvocs-hcs-amd). When missing they are cloned on demand by the action that needs them
+#        (single branch, master). Use RVOCS_SIBLINGS_DIR / RVOCS_TT_HOST_DIR / RVOCS_TT_STACK_DIR /
+#        RVOCS_THEROCK_DIR to relocate, --no-clone to disable fetching. This script only translates
 #        arguments and chains stages; it never reimplements build logic. See docs/CLI.md.
 set -euo pipefail
 
