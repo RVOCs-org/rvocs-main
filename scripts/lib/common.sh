@@ -182,9 +182,49 @@ ensure_repo() { # ensure_repo <id> -> prints the path
   require_cmd git
   log "sub-repo $id not found, fetching $url (branch $branch)" >&2
   mkdir -p "$SIBLINGS_DIR"
+
+  # Sub-repos are single-branch on main; a mirror that still uses master is
+  # accepted too: try the configured branch, then the other common name, then let
+  # git pick the remote default. The clone is built in a temporary directory, so a
+  # failed attempt can never remove an existing checkout.
+  local try_branches="$branch" b cloned=0 tmp
+  for b in main master; do
+    case " $try_branches " in
+      *" $b "*) ;;
+      *) try_branches="$try_branches $b" ;;
+    esac
+  done
+  tmp="$dest.partial.$$"
   # Note: no 2>&1 - clone progress must not pollute the value of $(ensure_repo)
-  if ! run_git clone --branch "$branch" "$url" "$dest"; then
-    warn "clone failed: $url (branch $branch)"
+  for b in $try_branches; do
+    rm -rf "$tmp"
+    if run_git clone --branch "$b" "$url" "$tmp"; then
+      cloned=1
+      [ "$b" = "$branch" ] || log "cloned branch $b of $url (configured: $branch)" >&2
+      break
+    fi
+    warn "branch $b not found on $url"
+  done
+  if [ "$cloned" = 0 ]; then
+    rm -rf "$tmp"
+    if run_git clone "$url" "$tmp"; then
+      cloned=1
+      log "cloned the remote default branch of $url" >&2
+    fi
+  fi
+  if [ "$cloned" = 0 ]; then
+    warn "clone failed: $url"
+    rm -rf "$tmp"
+    return 1
+  fi
+  if [ -e "$dest" ]; then
+    rm -rf "$tmp"
+    warn "refusing to overwrite an existing directory: $dest"
+    return 1
+  fi
+  if ! mv "$tmp" "$dest"; then
+    warn "could not move the clone into place: $dest"
+    rm -rf "$tmp"
     return 1
   fi
   printf '%s' "$dest"
@@ -198,7 +238,7 @@ require_repo() {
   var=$(repo_env_var "$id")
   die "sub-repo $id not found and could not be fetched.
        remote: $(repo_url "$id" 2>/dev/null || echo '(not configured)')
-       manual: git clone -b $(repo_branch_for "$id" "$ARCH") $(repo_url "$id" 2>/dev/null) $SIBLINGS_DIR/$(repo_dirs_for "$id" | awk '{print $1}')
+       manual: git clone $(repo_url "$id" 2>/dev/null) $SIBLINGS_DIR/$(repo_dirs_for "$id" | awk '{print $1}')
        or point at an existing copy: $var=/path/to/repo
        or use local copies only: RVOCS_NO_CLONE=1 (never hits the network)"
 }
@@ -367,14 +407,20 @@ pull_published() { # pull_published <name:tag>
 }
 
 # ---------------------------------------------------------------- tt-host release
-# Release assets as "<url> <TAB> <name>", newest release only.
+# Release assets as "<url> <TAB> <name>", newest release only (GitHub API).
 tt_host_release_assets() {
   have_cmd curl || return 1
   curl -fsSL --max-time 30 "$RVOCS_TT_HOST_RELEASES_API" 2>/dev/null \
     | tr ',' '\n' \
     | awk '
-        /"browser_download_url"/ { u=$0; sub(/^.*"browser_download_url":"/,"",u); sub(/".*$/,"",u); url=u; next }
-        /"name"/ && url != ""    { n=$0; sub(/^.*"name":"/,"",n); sub(/".*$/,"",n); printf "%s\t%s\n", url, n; url=""; next }
+        # GitHub lists "name" before "browser_download_url" inside each asset, so
+        # remember the name and emit the pair once the URL shows up.
+        /"name"/ { n=$0; sub(/^.*"name":"/,"",n); sub(/".*$/,"",n); name=n; next }
+        /"browser_download_url"/ {
+          u=$0; sub(/^.*"browser_download_url":"/,"",u); sub(/".*$/,"",u)
+          if (name != "") { printf "%s\t%s\n", u, name; name="" }
+          next
+        }
       '
 }
 
@@ -389,7 +435,7 @@ tt_host_latest_deb() { # tt_host_latest_deb <debarch> -> download URL of the new
   # fallback: scrape the releases page (works when the API is rate limited)
   have_cmd curl || return 1
   curl -fsSL --max-time 30 "$RVOCS_TT_HOST_RELEASES_PAGE" 2>/dev/null \
-    | grep -oE "https://gitee\.com/[^\"]+/releases/download/[^\"]+_${debarch}\.deb" \
+    | grep -oE "https://github\.com/[^\"]+/releases/download/[^\"]+_${debarch}\.deb" \
     | head -1
 }
 

@@ -5,7 +5,7 @@
 # Scope: tt-host only (other targets get host prerequisites from the distro
 #        and the vendor driver packages).
 #
-# Flow:  newest .deb from the Gitee release (downloaded on demand) -> apt/dpkg
+# Flow:  newest .deb from GitHub Releases (downloaded on demand) -> apt/dpkg
 #        fallback: build the local bundle and run its ./install.sh (offline hosts,
 #        or when the release has no asset for this architecture)
 #

@@ -9,9 +9,9 @@
 
 | target | 仓库 / 部件 | 层 | 分支 | 入口 | 产物 |
 | --- | --- | --- | --- | --- | --- |
-| `tt-host` | `rvocs-hcs-tenstorrent/host` | 宿主机 | 单分支 `master` | `host/scripts/build.sh` | `host/dist/rvocs-tt-deps_<version>_<debarch>.tar.zst`、`.deb` |
-| `tt-stack` | `rvocs-hcs-tenstorrent/stack` | 设备栈镜像 | 单分支 `master` | `stack/scripts/build.sh` | `rvocs-vllm-tt-<arch>:<version>` |
-| `therock` | `rvocs-hcs-amd` | 设备栈镜像 | 单分支 `master` | `scripts/build.sh` | `rvocs-vllm-therock<rocm>-<gpu>-<arch>:<version>`、`rvocs-runtime-therock...` |
+| `tt-host` | `rvocs-hcs-tenstorrent/host` | 宿主机 | 单分支 `main` | `host/scripts/build.sh` | `host/dist/rvocs-tt-deps_<version>_<debarch>.tar.zst`、`.deb` |
+| `tt-stack` | `rvocs-hcs-tenstorrent/stack` | 设备栈镜像 | 单分支 `main` | `stack/scripts/build.sh` | `rvocs-vllm-tt-<arch>:<version>` |
+| `therock` | `rvocs-hcs-amd` | 设备栈镜像 | 单分支 `main` | `scripts/build.sh` | `rvocs-vllm-therock<rocm>-<gpu>-<arch>:<version>`、`rvocs-runtime-therock...` |
 
 三者共同的工程约定（`rvocs-main` 沿用同一套）：
 

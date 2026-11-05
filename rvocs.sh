@@ -14,7 +14,7 @@
 #   --bom             print the full-stack version matrix (BOM)
 #   --install         install host dependencies (tt-kmd driver / tt-smi / 1G hugepages / udev)
 #   --download [tag]  pull a published image (<RVOCS_REGISTRY>/<tag>) or, with
-#                     --target tt-host, the newest .deb from the Gitee release
+#                     --target tt-host, the newest .deb from GitHub Releases
 #   --build           build from source (image or host bundle)
 #   --verify          acceptance checks (in-image smoke / bundle static checks)
 #   --deploy          print the container command; with --yes, run it
@@ -52,7 +52,9 @@
 #
 # Notes: sub-repos are reused as sibling directories (default ../rvocs-hcs-tenstorrent,
 #        ../rvocs-hcs-amd). When missing they are cloned on demand by the action that needs them
-#        (single branch, master). Use RVOCS_SIBLINGS_DIR / RVOCS_TT_HOST_DIR / RVOCS_TT_STACK_DIR /
+#        (single branch: main; a mirror that still uses master is accepted - the
+#        clone falls back automatically). Use RVOCS_SIBLINGS_DIR /
+#        RVOCS_TT_HOST_DIR / RVOCS_TT_STACK_DIR /
 #        RVOCS_THEROCK_DIR to relocate, --no-clone to disable fetching. This script only translates
 #        arguments and chains stages; it never reimplements build logic. See docs/CLI.md.
 set -euo pipefail
@@ -176,7 +178,7 @@ fi
 mkdir -p "$WORK_DIR" "$LOG_DIR"
 # network mode must be settled before any sub-repo clone happens
 case "$ACTION" in
-  # download talks to a registry or the Gitee release, never to github.com
+  # download talks to a container registry or GitHub Releases
   list-targets|version|status|bom|download) : ;;
   *) resolve_proxy ;;
 esac

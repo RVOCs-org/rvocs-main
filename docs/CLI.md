@@ -60,7 +60,7 @@
 | `--deploy` | 不会 | 只用镜像名与部署参数 |
 | `--version` / `--status` / `--doctor` / `--bom` | 不会 | 只读动作不触发网络，缺失项会明确标注 |
 
-所有仓库都是单分支（`master`），clone 分支与 `--arch` 无关；架构差异放在各仓库自己的
+所有仓库都是单分支（`main`；远端只有 `master` 时会自动回退，可用 `RVOCS_BRANCH` 覆盖），clone 分支与 `--arch` 无关；架构差异放在各仓库自己的
 `patches/<arch>/` 层。想用自己的副本或离线运行，加 `--no-clone`（缺少仓库时直接报错，
 并打印可复制的手动 `git clone` 命令）。
 
@@ -72,9 +72,9 @@
 
 | 动作 | 实际执行 |
 | --- | --- |
-| `--install` | 先找 `work/packages/` 里已下载的 `.deb`；没有则从 Gitee release 下最新的 `rvocs-tt-deps_<version>_<debarch>.deb` → `sudo apt-get install`；release 无对应架构时回退「本地构建 bundle → `install.sh`」 |
+| `--install` | 先找 `work/packages/` 里已下载的 `.deb`；没有则从 GitHub Releases 下最新的 `rvocs-tt-deps_<version>_<debarch>.deb` → `sudo apt-get install`；release 无对应架构时回退「本地构建 bundle → `install.sh`」 |
 | `--build` | `bash host/scripts/build.sh --arch <arch> --proxy <mode>`（阶段：fetch → patch → wheels → kmd → bundle → verify） |
-| `--download` | 从 Gitee release 下载最新的 `rvocs-tt-deps_<version>_<debarch>.deb` 到 `work/packages/`（只下不装） |
+| `--download` | 从 GitHub Releases 下载最新的 `rvocs-tt-deps_<version>_<debarch>.deb` 到 `work/packages/`（只下不装） |
 | `--verify` | 已解包 → `work/rvocs-tt-deps-<debarch>/verify.sh`；否则 `host/scripts/build.sh --stage verify`（交付物静态自检） |
 | `--deploy` | 不支持（宿主机层不跑容器） |
 
@@ -120,9 +120,10 @@
 | `RVOCS_THEROCK_DIR` | 直接指定 therock 的仓库路径（`rvocs-hcs-amd`） |
 | `RVOCS_TENSTORRENT_URL` / `RVOCS_THEROCK_URL` | 覆盖自动 clone 用的远端地址（tt-host 与 tt-stack 共用前者） |
 | `RVOCS_NO_CLONE=1` | 等价于 `--no-clone`：缺仓库直接报错，不联网 |
+| `RVOCS_BRANCH` | 自动 clone 用的分支，默认 `main`；回退顺序 `main` → `master` → 远端默认分支 |
 | `RVOCS_ENGINE` | 推理引擎，默认 `vllm`（目前仅此一个；`llamacpp` / `sglang` 属规划） |
 | `RVOCS_REGISTRY` | 已发布镜像的 registry 前缀，默认 `swr.cn-east-3.myhuaweicloud.com/cloud-mdgx` |
-| `RVOCS_TT_HOST_REPO_SLUG` / `RVOCS_TT_HOST_RELEASES_PAGE` / `RVOCS_TT_HOST_RELEASES_API` | tt-host 交付包的 Gitee release 位置（默认 `rvocs/rvocs-hcs-tenstorrent`） |
+| `RVOCS_TT_HOST_REPO_SLUG` / `RVOCS_TT_HOST_RELEASES_PAGE` / `RVOCS_TT_HOST_RELEASES_API` | tt-host 交付包的 GitHub Releases 位置（默认 `RVOCs-org/rvocs-hcs-tenstorrent`） |
 | `RVOCS_MIN_KERNEL_RISCV64` | riscv64 内核下限（默认 `7.0.0-31-generic`），低于此值 `--doctor` 报非阻塞 FAIL |
 | `ARCH` / `PROXY_MODE` / `WORK_DIR` / `STAGE` | 等价于同名命令行选项（命令行优先） |
 | `PROXY=1` | 强制镜像模式（跳过探测） |
@@ -167,9 +168,9 @@
 
 | target | 地址 | clone 分支 |
 | --- | --- | --- |
-| `tt-host` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
-| `tt-stack` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 所有架构统一 `master`（单分支） |
-| `therock` | `https://github.com/RVOCs-org/rvocs-hcs-amd.git` | 所有架构统一 `master`（单分支） |
+| `tt-host` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 单分支 `main`（`master` 自动回退） |
+| `tt-stack` | `https://github.com/RVOCs-org/rvocs-hcs-tenstorrent.git` | 单分支 `main`（`master` 自动回退） |
+| `therock` | `https://github.com/RVOCs-org/rvocs-hcs-amd.git` | 单分支 `main`（`master` 自动回退） |
 
 克隆到的是**上层仓库**（各子仓库的 `upstream/` 代码由它自己的 `fetch` 阶段拉取），
 所以首次执行只会下载编排脚本与补丁层，不会一次拉几十 GB 源码。

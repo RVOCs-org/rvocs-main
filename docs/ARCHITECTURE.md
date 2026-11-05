@@ -37,7 +37,7 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 
 ## 3. 为什么是单分支
 
-所有子仓库都是单分支（`master`）。早期 `tt-stack` 与 `amd-the-rock` 用过 `master` +
+所有子仓库都是单分支（`main`）。早期 `tt-stack` 与 `rvocs-hcs-amd` 用过 `master` +
 `RISCV-Porting` 双分支，但代价是同一改动要在两边各提交一次，容易漂移；现在 riscv64 的差异
 （`base` 阶段、SFPI 预检、`patches/riscv64`、`assets/`）都放在同一分支的按架构目录里，
 由 `--arch` 在运行时选择。
@@ -90,11 +90,11 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 
 「rvocs 会多做一点」的地方只有四处，都是为了把跨仓库的隐形约束显式化：
 
-1. **仓库自动获取**：需要子仓库脚本而本地没有时，clone `master` 到同级目录（`--no-clone` 可关闭）；
+1. **仓库自动获取**：需要子仓库脚本而本地没有时，clone 仓库的默认分支（`main`，回退 `master`）到同级目录（`--no-clone` 可关闭）；
 2. **部件定位**：`tt-host` 与 `tt-stack` 是同一个厂商仓库的两个部件，入口分别是 `host/scripts/build.sh`
    与 `stack/scripts/build.sh`，pin 与产物也各自在 `host/`、`stack/` 下；
 3. **镜像存在性检查**：`--verify` / `--deploy` 前确认本地有镜像，而不是等到容器里报错；
-4. **产物发现**：`--install` 先找已下载的 `.deb`，没有则从 Gitee release 拉最新版。
+4. **产物发现**：`--install` 先找已下载的 `.deb`，没有则从 GitHub Releases 拉最新版。
 
 ---
 

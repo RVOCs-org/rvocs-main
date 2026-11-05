@@ -21,13 +21,14 @@ project:
     sub-repos are never copied and no submodules are used - this repo only does
     discovery, argument translation and stage chaining.
   branches:
-    master: single branch. All riscv64 / x86_64 / aarch64 differences are handled by
+    main: single branch. All riscv64 / x86_64 / aarch64 differences are handled by
       --arch plus the sub-repos' patches/<arch> overlays
   repos_policy: >-
     Only this repository is required from a user's point of view. Missing sub-repos
     are cloned on demand into the sibling directory by the action that needs them
     (upper-level repo only; upstream/ sources are fetched by each repo's own fetch
-    stage). Every sub-repo is single-branch (master); architecture differences live
+    stage). Every sub-repo is single-branch (main; a mirror that still uses
+    master is accepted);
     in each repo's patches/<arch>/ layer. --no-clone / RVOCS_NO_CLONE=1 disables
     fetching.
   docs:
@@ -45,9 +46,9 @@ targets:
     dirs: [rvocs-hcs-tenstorrent]
     part: host
     env_override: RVOCS_TENSTORRENT_DIR
-    clone_branch: master
+    clone_branch: main
     entry: host/scripts/build.sh
-    branch: master            # every repository is single-branch; arch differences live in patches/{common,riscv64,x86_64}
+    branch: main              # every repository is single-branch; arch differences live in patches/{common,riscv64,x86_64}
     actions: [install, build, download, verify]
     artifacts:
       - host/dist/rvocs-tt-deps_<version>_<debarch>.tar.zst
@@ -60,9 +61,9 @@ targets:
     dirs: [rvocs-hcs-tenstorrent]
     part: stack
     env_override: RVOCS_TENSTORRENT_DIR
-    clone_branch: master
+    clone_branch: main
     entry: stack/scripts/build.sh
-    branch: master            # single-branch; the riscv64 porting layer lives in stack/patches/riscv64/
+    branch: main              # single-branch; the riscv64 porting layer lives in stack/patches/riscv64/
     actions: [build, download, verify, deploy]
     stages: [fetch, workdir, base, image, verify]
     artifacts:
@@ -75,9 +76,9 @@ targets:
     url: https://github.com/RVOCs-org/rvocs-hcs-amd.git
     dirs: [rvocs-hcs-amd]
     env_override: RVOCS_THEROCK_DIR
-    clone_branch: master
+    clone_branch: main
     entry: scripts/build.sh
-    branch: master            # single-branch; the riscv64 porting layer lives in patches/riscv64/
+    branch: main              # single-branch; the riscv64 porting layer lives in patches/riscv64/
     actions: [build, download, verify, deploy]
     stages: [preflight, fetch, workdir, build, wheels, image, verify]
     artifacts:

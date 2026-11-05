@@ -57,10 +57,13 @@ repo_url() {
   esac
 }
 
-# branch to clone: every repository is single-branch; arch differences live in
-# the repos' own patches/<arch>/ layers, not in branches
+# branch to clone: every repository is single-branch on `main`. ensure_repo()
+# falls back to the remote default when the configured name is missing (an old
+# checkout that still uses `master` is accepted), so RVOCS_BRANCH only has to be
+# set for a fork that uses another name. Architecture differences live in the
+# repos' own patches/<arch>/ layers, not in branches.
 repo_branch_for() { # repo_branch_for <id> <arch>
-  echo master
+  printf '%s' "${RVOCS_BRANCH:-main}"
 }
 
 repo_label() {

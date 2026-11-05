@@ -8,7 +8,7 @@
 #   ./rvocs.sh --target therock --arch riscv --download
 #       pulls rvocs-vllm-therock<rocm>-<gpu>-<arch>:<version>
 #   ./rvocs.sh --target tt-host --arch riscv --download
-#       downloads the newest rvocs-tt-deps_<version>_<debarch>.deb from the Gitee release
+#       downloads the newest rvocs-tt-deps_<version>_<debarch>.deb from GitHub Releases
 #
 # usage: bash scripts/actions/download.sh <registry|target> [image-tag]
 set -euo pipefail

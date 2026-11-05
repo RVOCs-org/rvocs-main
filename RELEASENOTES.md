@@ -16,12 +16,12 @@
 | `rvocs-vllm-tt-riscv64:v0.1.0` | vLLM 推理镜像（Tenstorrent） | riscv64 | SWR | `./rvocs.sh --download rvocs-vllm-tt-riscv64:v0.1.0` |
 | `rvocs-vllm-tt-amd64:v0.1.0` | vLLM 推理镜像（Tenstorrent） | amd64 | SWR | `./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0` |
 | `rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0` | vLLM 推理镜像（AMD GPU） | riscv64 | SWR | `./rvocs.sh --download rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0` |
-| `rvocs-tt-deps_v0.1.0_riscv64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | riscv64 | Gitee release | `./rvocs.sh --target tt-host --arch riscv --download` |
-| `rvocs-tt-deps_v0.1.0_amd64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | amd64 | Gitee release | `./rvocs.sh --target tt-host --arch x86 --download` |
+| `rvocs-tt-deps_v0.1.0_riscv64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | riscv64 | GitHub Releases | `./rvocs.sh --target tt-host --arch riscv --download` |
+| `rvocs-tt-deps_v0.1.0_amd64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | amd64 | GitHub Releases | `./rvocs.sh --target tt-host --arch x86 --download` |
 
 - 镜像 registry 前缀：`swr.cn-east-3.myhuaweicloud.com/cloud-mdgx/`（公开，无需登录）；
   `--download` 拉取后只保留短名（retag 后会自动删掉 registry 前缀的 tag，`docker images` 里只出现一个 `rvocs-...` 条目）
-- 交付包获取：`./rvocs.sh --target tt-host --arch <arch> --download`（`.deb` 资产暂托管在 Gitee Releases，迁移到 GitHub Releases 后 `RVOCS_TT_HOST_RELEASES_*` 一并切换）
+- 交付包获取：`./rvocs.sh --target tt-host --arch <arch> --download`（`.deb` 资产发布在 GitHub Releases；如需指向镜像，覆盖 `RVOCS_TT_HOST_RELEASES_*`）
 
 ### 1. `rvocs-vllm-tt-*`（Tenstorrent 栈）
 

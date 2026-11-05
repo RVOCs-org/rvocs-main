@@ -25,7 +25,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 - **跨架构、跨发行版**：架构差异在 `patches/<arch>/`，发行版差异在宿主机打包层（`host/`）；当前以 Ubuntu 26.04 LTS 为参考系统，Fedora / RHEL / openRuyi 按同一模型接入，上层命令不变。
 - **补丁即资产**：跨架构适配不在业务代码里打洞，而是沉淀为各厂商仓库的 `patches/<arch>/` 补丁系列，可审查、可回放、可回馈上游。
 - **版本可追溯**：每个仓库的 `VERSION` + `manifest.yaml`（上游 pin）+ gitlink 三方对齐；`baseline.sh` 一条命令切换上游基线，`--bom` 输出全栈版本矩阵。
-- **产物开箱即用**：镜像发布在华为云 SWR 公共命名空间，宿主机 `.deb` 发布在 Gitee Releases；`--download` 拉到本地即为统一命名的产物。
+- **产物开箱即用**：镜像发布在华为云 SWR 公共命名空间，宿主机 `.deb` 发布在 GitHub Releases；`--download` 拉到本地即为统一命名的产物。
 - **多加速器接口**：厂商仓库按 `rvocs-hcs-{vendor}` 命名接入，一条 target 声明能力矩阵即可扩展新设备，动作语义保持一致。
 
 > RVOCs 打通系统与软件栈，提供经过验证的 RISC-V 计算基础；上层的资源编排与模型服务由 RISMA 等平台在其上构建。
@@ -65,7 +65,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 ┌─────────────────────────────────────────────────────────────┐
 │  rvocs-vllm-tt-riscv64:v0.1.0      （SWR 公共命名空间）      │
 │  rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0                │
-│  rvocs-tt-deps_v0.1.0_riscv64.deb  （Gitee Releases）       │
+│  rvocs-tt-deps_v0.1.0_riscv64.deb  （GitHub Releases）       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -169,6 +169,6 @@ curl http://localhost:8000/v1/chat/completions \
 
 **RVOCs · RISC-V Open Computing System · 元石智算**
 
-[Gitee 组织](https://github.com/RVOCs-org) · 让下一次适配，从已有成果开始。
+[GitHub 组织](https://github.com/RVOCs-org) · 让下一次适配，从已有成果开始。
 
 </div>

@@ -36,7 +36,7 @@ Core capabilities:
 - **Traceable versions**: `<repo>/VERSION` + `manifest.yaml` (upstream pins) + gitlinks stay
   in sync; `baseline.sh` switches a baseline in one command and `--bom` prints the matrix.
 - **Artifacts ready to use**: images are published to a public Huawei Cloud SWR namespace,
-  host `.deb` packages to Gitee Releases; `--download` leaves a consistently named artifact
+  host `.deb` packages to GitHub Releases; `--download` leaves a consistently named artifact
   on the local machine.
 - **Accelerator-agnostic interface**: vendor repositories follow `rvocs-hcs-{vendor}`; a new
   device needs a capability matrix in the target registry, with unchanged action semantics.
@@ -80,7 +80,7 @@ device software stack:
 ┌─────────────────────────────────────────────────────────────┐
 │  rvocs-vllm-tt-riscv64:v0.1.0        (public SWR namespace) │
 │  rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0                │
-│  rvocs-tt-deps_v0.1.0_riscv64.deb    (Gitee Releases)       │
+│  rvocs-tt-deps_v0.1.0_riscv64.deb    (GitHub Releases)       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
