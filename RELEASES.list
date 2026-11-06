@@ -12,9 +12,17 @@
 #   artifact : full .deb file name, or full docker tag (short name, WITHOUT the
 #              RVOCS_REGISTRY prefix)
 #
-# ORDER: newest first. To publish a new version, insert its lines ABOVE the
-# older ones. --download and --deploy always pick the first (newest) version
-# that has an artifact matching --arch.
+# LAYOUT: two levels of comment separators
+#
+#   # ===== <target> =====          one block per target (tt-host / tt-stack / therock)
+#     # ---- riscv64 ----          inside a target, one block per host architecture
+#     # ---- x86_64 (amd64) ----   (amd64 / arm64 are the names used in artifacts)
+#     # ---- aarch64 (arm64) ----
+#
+# ORDER: inside a (target, architecture) block the NEWEST version comes first.
+# --download and --deploy take the first row of the requested target in the
+# block matching --arch, so each architecture can advance on its own. A missing
+# block simply means "nothing published for that target on that architecture".
 #
 # Where the artifacts live:
 #   images : <RVOCS_REGISTRY>/<artifact>  (Huawei Cloud SWR, public)
@@ -22,10 +30,26 @@
 #            (GitHub Releases of rvocs-hcs-tenstorrent)
 # ============================================================================
 
+# =============================================================== tt-host =====
+# ---- riscv64 ----
 tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_riscv64.deb
+# ---- x86_64 (names use amd64) ----
 tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_amd64.deb
+# ---- aarch64 (names use arm64) ----
+# 暂无已发布产物
 
+# ============================================================== tt-stack =====
+# ---- riscv64 ----
 tt-stack    v0.1.0    rvocs-vllm-tt-riscv64:v0.1.0
+# ---- x86_64 (names use amd64) ----
 tt-stack    v0.1.0    rvocs-vllm-tt-amd64:v0.1.0
+# ---- aarch64 (names use arm64) ----
+# 暂无已发布产物
 
+# =============================================================== therock =====
+# ---- riscv64 ----
 therock     v0.1.0    rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
+# ---- x86_64 (names use amd64) ----
+# x86_64 镜像待支持，暂无已发布产物
+# ---- aarch64 (names use arm64) ----
+# 暂无已发布产物

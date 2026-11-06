@@ -91,7 +91,7 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 | `--clone` | 获取厂商仓库 |
 
 `--target` 选栈与加速器，`--arch` 选架构，`--stage` 只跑某一段，`--proxy` 选网络模式；
-产物清单在 `RELEASES.list` 里维护，新增一个版本只需加一行。
+产物清单在 `RELEASES.list` 里按 target 与架构两级分组维护，新增一个版本只需在对应 target + 架构小段顶部加一行。
 完整参数见 [docs/CLI.md](docs/CLI.md)。
 
 ---

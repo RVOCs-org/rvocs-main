@@ -404,7 +404,10 @@ pull_published() { # pull_published <name:tag>
 
 # ---------------------------------------------------------------- published releases
 # RELEASES.list is the single source of truth for published artifacts. One line
-# per artifact, newest first:  <target> <version> <artifact>
+# per artifact:  <target> <version> <artifact>. Lines are grouped by target and,
+# inside each target, by host architecture (comment separators); within a
+# (target, architecture) block the newest version comes first, so every
+# target/architecture pair can advance independently.
 release_rows() { # -> target<TAB>version<TAB>artifact
   [ -f "$RELEASES_FILE" ] || return 1
   awk 'BEGIN { FS="[[:space:]]+" }
@@ -412,28 +415,57 @@ release_rows() { # -> target<TAB>version<TAB>artifact
        NF >= 3 { print $1 "\t" $2 "\t" $3 }' "$RELEASES_FILE"
 }
 
-release_latest_version() { # <target> -> newest version listed for the target
+release_latest_version() { # <target> -> highest version listed for the target
   local t="$1"
-  { release_rows || true; } | awk -v t="$t" '$1 == t { print $2; exit }'
+  { release_rows || true; } | awk -v t="$t" '$1 == t { print $2 }' \
+    | sort -Vr | sed -n '1p'
 }
 
-release_latest_artifacts() { # <target> -> artifacts of the newest version
+release_latest_artifacts() { # <target> -> artifacts of the highest version
   local t="$1" v
   v=$(release_latest_version "$t")
   [ -n "$v" ] || return 1
   { release_rows || true; } | awk -v t="$t" -v v="$v" '$1 == t && $2 == v { print $3 }'
 }
 
-release_artifact_for_arch() { # <target> <arch> -> artifact matching that arch
-  local t="$1" arch="$2" a img deb
-  img=$(image_arch "$arch")
-  deb=$(arch_deb "$arch")
-  while IFS= read -r a; do
-    case "$a" in
-      *_"$deb".deb|*-"$img":*) printf '%s' "$a"; return 0 ;;
-    esac
-  done < <(release_latest_artifacts "$t" || true)
+release_arch_matches() { # <artifact> <arch> -> 0 when the artifact targets that arch
+  local a="$1" img deb
+  img=$(image_arch "$2")
+  deb=$(arch_deb "$2")
+  case "$a" in
+    *_"$deb".deb|*-"$img":*) return 0 ;;
+  esac
   return 1
+}
+
+release_rows_for_arch() { # <target> <arch> -> version<TAB>artifact, newest first
+  local t="$1" arch="$2" ver art
+  while IFS=$'\t' read -r _ ver art; do
+    if release_arch_matches "$art" "$arch"; then
+      printf '%s\t%s\n' "$ver" "$art"
+    fi
+  done < <({ release_rows || true; } | awk -v t="$t" '$1 == t')
+}
+
+release_latest_for_arch() { # <target> <arch> -> newest version<TAB>artifact
+  release_rows_for_arch "$1" "$2" | sed -n '1p'
+}
+
+release_version_for_arch() { # <target> <arch> -> version of that newest artifact
+  release_latest_for_arch "$1" "$2" | cut -f1
+}
+
+release_artifact_for_arch() { # <target> <arch> -> newest artifact for that arch
+  local a
+  a=$(release_latest_for_arch "$1" "$2" | cut -f2)
+  [ -n "$a" ] || return 1
+  printf '%s' "$a"
+}
+
+release_version_of_artifact() { # <target> <artifact> -> version of that exact artifact
+  local t="$1" art="$2"
+  { release_rows || true; } | awk -v t="$t" -v a="$art" \
+    '$1 == t && $3 == a { print $2; exit }'
 }
 
 release_download_url() { # <version> <artifact> -> tt-host .deb download URL

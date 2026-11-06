@@ -6,7 +6,8 @@
 #      manifest.yaml. This file only mirrors them for review; it never influences
 #      build behaviour.
 #   2) Machine-readable parameters live in config/ (defaults.sh + repos.sh).
-#   3) Published artifacts (docker tags / .deb names) live in RELEASES.list and
+#   3) Published artifacts (docker tags / .deb names) live in RELEASES.list,
+#      grouped by target and host architecture with comment separators, and
 #      are the single source of truth for --list-releases / --download / --deploy.
 #   4) AMD framework component versions live in config/components.list.
 # ============================================================================

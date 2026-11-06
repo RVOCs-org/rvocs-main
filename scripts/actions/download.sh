@@ -6,8 +6,9 @@
 #   ./rvocs.sh --target therock --arch riscv --download
 #   ./rvocs.sh --target tt-host --arch riscv --download
 #
-# The newest version in RELEASES.list wins. Among that version's artifacts the
-# one matching --arch is chosen; use --list-releases to see all of them.
+# RELEASES.list is grouped by target and host architecture: --download picks
+# the first (newest) row of this target in the block matching --arch. Use
+# --list-releases to see all of them.
 #
 # usage: bash scripts/actions/download.sh <registry|target> [image-tag]
 set -euo pipefail
@@ -28,7 +29,7 @@ case "$TARGET" in
     ;;
 
   tt-stack|therock)
-    ref="${REF:-$(release_artifact_for_arch "$TARGET" "$ARCH")}"
+    ref="${REF:-$(release_artifact_for_arch "$TARGET" "$ARCH" || true)}"
     [ -n "$ref" ] || die "no published image for $TARGET/$ARCH in $RELEASES_FILE
        run: ./rvocs.sh --target $TARGET --list-releases"
     pull_published "$ref"
@@ -36,10 +37,14 @@ case "$TARGET" in
     ;;
 
   tt-host)
-    name="${REF:-$(release_artifact_for_arch tt-host "$ARCH")}"
-    [ -n "$name" ] || die "no published .deb for tt-host/$ARCH in $RELEASES_FILE
+    if [ -n "$REF" ]; then
+      name="$REF"
+      ver=$(release_version_of_artifact tt-host "$name")
+    else
+      IFS=$'	' read -r ver name < <(release_latest_for_arch tt-host "$ARCH") || true
+    fi
+    [ -n "$name" ] && [ -n "$ver" ] || die "no published .deb for tt-host/$ARCH in $RELEASES_FILE
        run: ./rvocs.sh --target tt-host --list-releases"
-    ver=$(release_latest_version tt-host)
     url=$(release_download_url "$ver" "$name")
     dest="$WORK_DIR/packages/$name"
 

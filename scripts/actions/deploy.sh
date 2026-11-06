@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # action: deploy - start the inference container
 #
-# The image tag is taken from RELEASES.list (newest artifact matching --arch),
+# The image tag is taken from RELEASES.list (newest row of this target in the
+# architecture block matching --arch),
 # with the derived local build name as a fallback.
 #
 # Devices and mounts are fixed per accelerator type (matching each sub-repo README):

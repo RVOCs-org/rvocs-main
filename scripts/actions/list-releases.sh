@@ -42,7 +42,7 @@ trap 'rm -f "$tmp"' EXIT
 
 if [ "$(wc -l < "$tmp")" -le 1 ]; then
   warn "no published artifacts for: $WANTED"
-  echo "  add one line per artifact to $RELEASES_FILE (newest first)"
+  echo "  add a line at the top of the target + architecture block in $RELEASES_FILE"
   exit 1
 fi
 

@@ -70,7 +70,7 @@ riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0
 
 ### 获取与使用
 
-产物清单由仓库根目录的 `RELEASES.list` 维护（从新到旧），`--list-releases`、
+产物清单由仓库根目录的 `RELEASES.list` 维护（按 target 与宿主架构两级分组、组内从新到旧），`--list-releases`、
 `--download`、`--deploy` 都读它；新增一个版本只需在文件里加一行。
 
 ```bash

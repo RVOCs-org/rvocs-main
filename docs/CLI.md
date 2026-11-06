@@ -13,7 +13,7 @@
 | 动作 | 说明 | 需要 `--target` |
 |---|---|---|
 | `--version` | 版本与上游组件 pin；不带 `--target` 时只显示 rvocs-main | 否 |
-| `--list-releases` | 打印 `RELEASES.list` 中已发布的产物（镜像 tag / `.deb` 全名），从新到旧 | 否（可用 `--target` 过滤） |
+| `--list-releases` | 打印 `RELEASES.list` 中已发布的产物（镜像 tag / `.deb` 全名），按架构分组、组内从新到旧 | 否（可用 `--target` 过滤） |
 | `--clone` | 把厂商仓库 clone 到同级目录；不带 `--target` 时 clone 全部 | 否 |
 | `--doctor` | 环境自检：OS / 内核 / 磁盘 / 设备节点 / 已知 quirk + 下一步命令 | 否 |
 | `--install` | 安装宿主机依赖（tt-kmd / tt-smi / 1G 大页 / udev） | 是 |
@@ -61,17 +61,29 @@
 
 仓库根目录的 `RELEASES.list` 是产物清单的**唯一来源**，`--list-releases`、`--download`、`--deploy` 都读它。
 
-格式（空白分隔，一行一个产物，**新版本写在上面**）：
+格式（空白分隔，一行一个产物）：
 
 ```
 <target>    <version>    <artifact>
 ```
 
+**按 target 与宿主架构两级分区**：
+
+- 一级用 `# ===== <target> =====` 分出 `tt-host` / `tt-stack` / `therock` 三块；
+- 每块内部再用 `# ---- <arch> ----` 分出 `riscv64`、`x86_64`（产物名里是
+  `amd64`）、`aarch64`（产物名里是 `arm64`）三小段；
+- 一行产物写进它所属 target 的、对应架构的小段；某个组合没有产物就留一行注释
+  说明（例如 therock 的 x86_64 仍在适配中）。
+
+**每个 (target, 架构) 小段内部，新版本写在上面**。
+
 - `<artifact>`：完整 `.deb` 文件名，或完整 docker tag（短名，不带 registry 前缀）；
 - 镜像从 `<RVOCS_REGISTRY>/<artifact>` 拉取；`.deb` 从
   `<RVOCS_TT_HOST_RELEASES_PAGE>/download/<version>/<artifact>` 下载；
-- 同一 target 的**第一行版本即最新版本**；`--download` 在该版本的产物里挑与 `--arch` 匹配的那一个；
-- 新增一个版本：在旧版本上方插入一行（或多个架构各一行）即可，无需改脚本。
+- `--download` / `--deploy` 取「该 target 在目标架构小段里的第一行」，因此各
+  target、各架构都能独立发版，互不牵连；
+- 新增一个版本：在对应 target + 架构小段的**顶部**插入一行即可，无需改脚本；
+  新增 target 或架构则加一段注释 + 若干行。
 
 ```bash
 ./rvocs.sh --list-releases                  # 全部 target
