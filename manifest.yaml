@@ -1,13 +1,14 @@
 # ============================================================================
 # rvocs-main manifest (human-readable full-stack index)
 #
-# Authority rules (important):
+# Authority rules:
 #   1) The authoritative pin of each sub-repo is that repo's own gitlink /
-#      manifest.yaml. This file only mirrors them for review and release notes;
-#      it never influences build behaviour.
+#      manifest.yaml. This file only mirrors them for review; it never influences
+#      build behaviour.
 #   2) Machine-readable parameters live in config/ (defaults.sh + repos.sh).
-#   3) To bump a baseline, commit the new gitlink in the sub-repo first, then
-#      sync the bom section below.
+#   3) Published artifacts (docker tags / .deb names) live in RELEASES.list and
+#      are the single source of truth for --list-releases / --download / --deploy.
+#   4) AMD framework component versions live in config/components.list.
 # ============================================================================
 version: 1
 
@@ -18,19 +19,16 @@ project:
   purpose: >-
     Orchestration layer for RVOCs (RISC-V Open Computing System): one CLI to manage
     host dependencies, device-stack image builds and deployment. Sources of the
-    sub-repos are never copied and no submodules are used - this repo only does
-    discovery, argument translation and stage chaining.
+    sub-repos are never copied and no submodules are used - this repository only
+    does discovery, argument translation and stage chaining.
   branches:
-    main: single branch. All riscv64 / x86_64 / aarch64 differences are handled by
-      --arch plus the sub-repos' patches/<arch> overlays
+    main: single branch; riscv64 / x86_64 / aarch64 differences are handled by
+      --arch plus each sub-repo's patches/<arch> overlays
   repos_policy: >-
-    Only this repository is required from a user's point of view. Missing sub-repos
-    are cloned on demand into the sibling directory by the action that needs them
-    (upper-level repo only; upstream/ sources are fetched by each repo's own fetch
-    stage). Every sub-repo is single-branch (main; a mirror that still uses
-    master is accepted);
-    in each repo's patches/<arch>/ layer. --no-clone / RVOCS_NO_CLONE=1 disables
-    fetching.
+    Only this repository is required from a user's point of view. Vendor
+    repositories are fetched explicitly with ./rvocs.sh --clone into the sibling
+    directory; no action clones them implicitly (upstream/ sources are fetched
+    by each vendor repo's own fetch stage).
   docs:
     overview: README.md
     quickstart: docs/QUICKSTART.md
@@ -38,6 +36,8 @@ project:
     repos: docs/REPOS.md
     architecture: docs/ARCHITECTURE.md
     quirks: docs/QUIRKS.md
+    releases: RELEASES.list
+    amd_components: config/components.list
 
 targets:
   tt-host:
@@ -49,8 +49,8 @@ targets:
     clone_branch: main
     entry: host/scripts/build.sh
     branch: main              # every repository is single-branch; arch differences live in patches/{common,riscv64,x86_64}
-    actions: [install, build, download, verify]
-    artifacts:
+    actions: [install, build, download, version, doctor, list-releases, clone]
+    artifact_patterns:
       - host/dist/rvocs-tt-deps_<version>_<debarch>.tar.zst
       - host/dist/rvocs-tt-deps_<version>_<debarch>.deb
     note: interacts with the image repos only through /dev/tenstorrent; tt-kmd 2.11.x is compatible with the tt-umd shipped in the images
@@ -64,10 +64,10 @@ targets:
     clone_branch: main
     entry: stack/scripts/build.sh
     branch: main              # single-branch; the riscv64 porting layer lives in stack/patches/riscv64/
-    actions: [build, download, verify, deploy]
+    actions: [build, download, deploy, version, doctor, list-releases, clone]
     stages: [fetch, workdir, base, image, verify]
-    artifacts:
-      - rvocs-vllm-tt-<arch>:<tenstorrent version>       # e.g. rvocs-vllm-tt-riscv64:v0.1.0
+    artifact_patterns:
+      - rvocs-vllm-tt-<arch>:<version>       # e.g. rvocs-vllm-tt-riscv64:v0.1.0
       - local/tt-metal/tt-metalium/ubuntu-26.04-riscv64:v1 (base image, not distributed)
     note: one vendor repository with tt-host - host/ builds the host packages, stack/ the image
 
@@ -79,107 +79,28 @@ targets:
     clone_branch: main
     entry: scripts/build.sh
     branch: main              # single-branch; the riscv64 porting layer lives in patches/riscv64/
-    actions: [build, download, verify, deploy]
+    actions: [build, download, deploy, version, doctor, list-releases, clone]
     stages: [preflight, fetch, workdir, build, wheels, image, verify]
-    artifacts:
-      - rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<amd-the-rock version>    # e.g. rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
-      - rvocs-runtime-therock<rocm major.minor>-<gpu>-<arch>:<amd-the-rock version>
+    artifact_patterns:
+      - rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version>    # e.g. rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
+      - rvocs-runtime-therock<rocm major.minor>-<gpu>-<arch>:<version>
     note: x86_64 defaults to prebuilt + pip (minutes); riscv64 is source-only (~23 hours)
 
-# ---------------------------------------------------------------------------
-# Full-stack BOM (the bom action parses these four fields: component / version /
-# target / source)
-# ---------------------------------------------------------------------------
-bom:
-  - component: rvocs-main
-    version: "v1.0.0"
-    target: rvocs
-    source: ../rvocs-main
-  - component: rvocs-tt-deps
-    version: "v0.1.0 (bundle)"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-kmd
-    version: "ttkmd-2.11.1-pre (DKMS, upstream main)"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-umd
-    version: "v0.9.14 (auto-adjust)"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-smi (host)
-    version: "v6.8.0"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-flash
-    version: "v4.1.0"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-topology
-    version: "v1.2.20"
-    target: tt-host
-    source: ../rvocs-hcs-tenstorrent/host/manifest.yaml
-  - component: tt-inference-server
-    version: "v0.22.0 (9ef9d660)"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: tt-metal
-    version: "v0.79.0-rc11 (29f93c91)"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: vllm-tt-plugin
-    version: "d84049e (vLLM 0.30.0)"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: sfpi (riscv toolchain)
-    version: "7.78.0 (prebuilt)"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: tt-smi (image)
-    version: "v3.1.1"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: python/torch (riscv64)
-    version: "3.12.15 / 2.14.0+cpu (RISE)"
-    target: tt-stack
-    source: ../rvocs-hcs-tenstorrent/stack/manifest.yaml
-  - component: TheRock
-    version: "therock-10.0 (16adc4d8)"
-    target: therock
-    source: ../rvocs-hcs-amd/manifest.yaml
-  - component: ROCm
-    version: "10.0.0 (stable)"
-    target: therock
-    source: ../rvocs-hcs-amd/manifest.yaml
-  - component: torch/torchvision (riscv64)
-    version: "2.11 / 0.26 (source)"
-    target: therock
-    source: ../rvocs-hcs-amd/manifest.yaml
-  - component: vllm (amd)
-    version: "matching ROCm 10.0 (source)"
-    target: therock
-    source: ../rvocs-hcs-amd/manifest.yaml
-  - component: target-gpu
-    version: "Radeon AI PRO R9700 (gfx1201)"
-    target: therock
-    source: ../rvocs-hcs-amd/config/gpu-targets.sh
-
 images:
-  # Naming rule shared by all targets:
-  #   rvocs-vllm-tt-<arch>:<version>                       tenstorrent
-  #   rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version> amd-the-rock
+  # Naming rule shared by all targets (concrete tags are listed in RELEASES.list):
+  #   rvocs-vllm-tt-<arch>:<version>                            tt-stack
+  #   rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version> therock
   # <arch> is the OCI name: amd64 / arm64 / riscv64
+  registry: swr.cn-east-3.myhuaweicloud.com/cloud-mdgx
   tt-stack:
-    riscv64: rvocs-vllm-tt-riscv64:<version>
-    x86_64:  rvocs-vllm-tt-amd64:<version>
-    aarch64: rvocs-vllm-tt-arm64:<version>
-    version_source: ../tenstorrent/VERSION
+    pattern: rvocs-vllm-tt-<arch>:<version>
+    version_source: ../rvocs-hcs-tenstorrent/VERSION
   therock:
     pattern: rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version>
     runtime_pattern: rvocs-runtime-therock<rocm major.minor>-<gpu>-<arch>:<version>
     default_gpu: r9700
     rocm_version: 10.0.0
-    version_source: ../amd-the-rock/VERSION
+    version_source: ../rvocs-hcs-amd/VERSION
 
 deploy:
   tt-stack:
@@ -195,7 +116,6 @@ deploy:
 
 known_limits: |
   - rvocs-main does not build across architectures: the target arch must match the host.
-  - On riscv64 both image stacks are source-only and require the porting branch (RISCV-Porting).
   - Tenstorrent end-to-end inference has not been validated on real cards yet (acceptance
     stops at importing ttnn/vllm); the tt-kmd/firmware steps of tt-host on riscv64 are beta.
   - riscv64 omits torchvision / numba / opencv-python-headless / qwen-vl-utils / av by design.

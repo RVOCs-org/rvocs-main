@@ -16,14 +16,16 @@ source "$REPO_ROOT/config/repos.sh"
 
 WORK_DIR="${WORK_DIR:-$REPO_ROOT/work}"
 LOG_DIR="${LOG_DIR:-$WORK_DIR/logs}"
+RELEASES_FILE="${RELEASES_FILE:-$REPO_ROOT/RELEASES.list}"
 # sibling root: the parent of rvocs-main by default (flat sibling layout)
 SIBLINGS_DIR="${RVOCS_SIBLINGS_DIR:-$(cd "$REPO_ROOT/.." && pwd)}"
 
 ARCH="${ARCH:-$(uname -m)}"
 PROXY_MODE="${PROXY_MODE:-$DEFAULT_PROXY_MODE}"
 PROXY="${PROXY:-}"          # 1|0, resolved by resolve_proxy
-DRY_RUN="${DRY_RUN:-0}"
-YES="${YES:-0}"
+# --dry-run / --yes are gone from the CLI. Keep DRY_RUN fixed at 0 for
+# the shared execution wrappers; actions with side effects always run.
+DRY_RUN=0
 STAGE="${STAGE:-}"
 TARGETS="${TARGETS:-}"
 TARGET="${TARGET:-}"
@@ -163,30 +165,29 @@ run_git() {
   fi
 }
 
-# Fetch a missing sub-repo on demand: clone into the sibling directory, branch
-# selected by architecture.
-ensure_repo() { # ensure_repo <id> -> prints the path
+# Clone a vendor repository explicitly (`--clone`). Nothing clones implicitly,
+# so a missing repository produces a clear, actionable error instead of silently
+# reaching the network. The clone is built in a temporary directory: an existing
+# checkout is never removed, even when the clone fails.
+clone_repo() { # clone_repo <id> -> prints the path
   local id="$1" url branch dest
-  [ "${RVOCS_NO_CLONE:-0}" = 1 ] && return 1
+  if dest=$(repo_dir "$id" 2>/dev/null); then
+    log "already present: $dest" >&2
+    printf '%s' "$dest"
+    return 0
+  fi
   url=$(repo_url "$id" 2>/dev/null) || return 1
   [ -n "$url" ] || return 1
   branch=$(repo_branch_for "$id" "$ARCH")
   dest="$SIBLINGS_DIR/$(repo_dirs_for "$id" | awk '{print $1}')"
 
-  if [ "$DRY_RUN" = 1 ]; then
-    printf '  [dry-run] git clone --branch %s %s %s\n' "$branch" "$url" "$dest" >&2
-    printf '%s' "$dest"
-    return 0
-  fi
-
   require_cmd git
-  log "sub-repo $id not found, fetching $url (branch $branch)" >&2
+  log "cloning $url (branch $branch)" >&2
   mkdir -p "$SIBLINGS_DIR"
 
   # Sub-repos are single-branch on main; a mirror that still uses master is
   # accepted too: try the configured branch, then the other common name, then let
-  # git pick the remote default. The clone is built in a temporary directory, so a
-  # failed attempt can never remove an existing checkout.
+  # git pick the remote default.
   local try_branches="$branch" b cloned=0 tmp
   for b in main master; do
     case " $try_branches " in
@@ -195,7 +196,6 @@ ensure_repo() { # ensure_repo <id> -> prints the path
     esac
   done
   tmp="$dest.partial.$$"
-  # Note: no 2>&1 - clone progress must not pollute the value of $(ensure_repo)
   for b in $try_branches; do
     rm -rf "$tmp"
     if run_git clone --branch "$b" "$url" "$tmp"; then
@@ -230,17 +230,16 @@ ensure_repo() { # ensure_repo <id> -> prints the path
   printf '%s' "$dest"
 }
 
-# require_repo <id> -> directory; clones on demand when missing
+# require_repo <id> -> directory; never fetches anything
 require_repo() {
   local id="$1" dir var
   if dir=$(repo_dir "$id" 2>/dev/null); then printf '%s' "$dir"; return 0; fi
-  if dir=$(ensure_repo "$id"); then printf '%s' "$dir"; return 0; fi
   var=$(repo_env_var "$id")
-  die "sub-repo $id not found and could not be fetched.
-       remote: $(repo_url "$id" 2>/dev/null || echo '(not configured)')
-       manual: git clone $(repo_url "$id" 2>/dev/null) $SIBLINGS_DIR/$(repo_dirs_for "$id" | awk '{print $1}')
+  die "sub-repo $id not found.
+       expected: $SIBLINGS_DIR/$(repo_dirs_for "$id" | awk '{print $1}')
+       fetch it: ./rvocs.sh --target $id --clone
        or point at an existing copy: $var=/path/to/repo
-       or use local copies only: RVOCS_NO_CLONE=1 (never hits the network)"
+       remote:   $(repo_url "$id" 2>/dev/null || echo '(not configured)')"
 }
 
 # require_entry <id> -> directory that also contains the build entry point
@@ -249,8 +248,6 @@ require_entry() {
   dir=$(require_repo "$id")
   entry=$(repo_entry "$id")
   if [ ! -f "$dir/$entry" ]; then
-    # in dry-run the repo may only be planned for cloning, so nothing to check yet
-    if [ "$DRY_RUN" = 1 ]; then printf '%s' "$dir"; return 0; fi
     die "$id is missing the entry script: $dir/$entry"
   fi
   printf '%s' "$dir"
@@ -307,8 +304,7 @@ check_porting_branch() { # check_porting_branch <id> <arch>
   want=$(repo_porting_branch "$id")
   [ -n "$want" ] || return 0
   branch=$(repo_branch "$id")
-  # in dry-run the repo may only be planned for cloning, so there is no branch to check
-  if [ -z "$branch" ] && [ "$DRY_RUN" = 1 ]; then return 0; fi
+  [ -n "$branch" ] || return 0
   if [ "$branch" != "$want" ]; then
     die "$id must use branch $want on riscv64 (current: ${branch:-unknown}).
        fix: git -C $(repo_dir "$id") checkout $want && git -C $(repo_dir "$id") submodule update --init"
@@ -331,8 +327,8 @@ image_exists() { # image_exists <tag>
 }
 
 # ---------------------------------------------------------------- published artifacts
-# Pull a published image and keep the short name, so --verify/--deploy (which use
-# the local name) do not need to know where it came from.
+# Pull a published image and keep the short name, so --deploy (which uses
+# the local name) does not need to know where it came from.
 registry_ref() { # registry_ref <name:tag> -> <registry>/<name:tag>
   printf '%s/%s' "${RVOCS_REGISTRY%/}" "$1"
 }
@@ -406,39 +402,54 @@ pull_published() { # pull_published <name:tag>
   fi
 }
 
-# ---------------------------------------------------------------- tt-host release
-# Release assets as "<url> <TAB> <name>", newest release only (GitHub API).
-tt_host_release_assets() {
-  have_cmd curl || return 1
-  curl -fsSL --max-time 30 "$RVOCS_TT_HOST_RELEASES_API" 2>/dev/null \
-    | tr ',' '\n' \
-    | awk '
-        # GitHub lists "name" before "browser_download_url" inside each asset, so
-        # remember the name and emit the pair once the URL shows up.
-        /"name"/ { n=$0; sub(/^.*"name":"/,"",n); sub(/".*$/,"",n); name=n; next }
-        /"browser_download_url"/ {
-          u=$0; sub(/^.*"browser_download_url":"/,"",u); sub(/".*$/,"",u)
-          if (name != "") { printf "%s\t%s\n", u, name; name="" }
-          next
-        }
-      '
+# ---------------------------------------------------------------- published releases
+# RELEASES.list is the single source of truth for published artifacts. One line
+# per artifact, newest first:  <target> <version> <artifact>
+release_rows() { # -> target<TAB>version<TAB>artifact
+  [ -f "$RELEASES_FILE" ] || return 1
+  awk 'BEGIN { FS="[[:space:]]+" }
+       /^[[:space:]]*#/ || NF == 0 { next }
+       NF >= 3 { print $1 "\t" $2 "\t" $3 }' "$RELEASES_FILE"
 }
 
-tt_host_latest_deb() { # tt_host_latest_deb <debarch> -> download URL of the newest matching .deb
-  local debarch="$1" url name
-  while IFS=$'\t' read -r url name; do
-    case "$name" in
-      *_"$debarch".deb) printf '%s' "$url"; return 0 ;;
+release_latest_version() { # <target> -> newest version listed for the target
+  local t="$1"
+  { release_rows || true; } | awk -v t="$t" '$1 == t { print $2; exit }'
+}
+
+release_latest_artifacts() { # <target> -> artifacts of the newest version
+  local t="$1" v
+  v=$(release_latest_version "$t")
+  [ -n "$v" ] || return 1
+  { release_rows || true; } | awk -v t="$t" -v v="$v" '$1 == t && $2 == v { print $3 }'
+}
+
+release_artifact_for_arch() { # <target> <arch> -> artifact matching that arch
+  local t="$1" arch="$2" a img deb
+  img=$(image_arch "$arch")
+  deb=$(arch_deb "$arch")
+  while IFS= read -r a; do
+    case "$a" in
+      *_"$deb".deb|*-"$img":*) printf '%s' "$a"; return 0 ;;
     esac
-  done < <(tt_host_release_assets)
-
-  # fallback: scrape the releases page (works when the API is rate limited)
-  have_cmd curl || return 1
-  curl -fsSL --max-time 30 "$RVOCS_TT_HOST_RELEASES_PAGE" 2>/dev/null \
-    | grep -oE "https://github\.com/[^\"]+/releases/download/[^\"]+_${debarch}\.deb" \
-    | head -1
+  done < <(release_latest_artifacts "$t" || true)
+  return 1
 }
 
-tt_host_deb_local() { # tt_host_deb_local <debarch> -> newest downloaded .deb in the workdir
-  ls -1t "$WORK_DIR"/packages/*_"$debarch".deb 2>/dev/null | head -1 || true
+release_download_url() { # <version> <artifact> -> tt-host .deb download URL
+  printf '%s/download/%s/%s' "${RVOCS_TT_HOST_RELEASES_PAGE%/}" "$1" "$2"
+}
+
+published_image_for() { # <target> <arch> -> published tag, else the local build name
+  local t="$1" arch="$2" ref
+  if ref=$(release_artifact_for_arch "$t" "$arch"); then
+    printf '%s' "$ref"
+  else
+    image_tag_for "$t" "$arch"
+  fi
+}
+
+# newest previously downloaded .deb in the work dir
+tt_host_deb_local() { # <debarch>
+  ls -1t "$WORK_DIR"/packages/*_"$1".deb 2>/dev/null | head -1 || true
 }

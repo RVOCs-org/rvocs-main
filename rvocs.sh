@@ -1,62 +1,60 @@
 #!/usr/bin/env bash
-# RVOCs unified entry point - one command to drive three sibling repositories
-# (host dependencies / device-stack images / deployment).
+# RVOCs unified entry point - one command to drive the sibling vendor repositories.
 #
 # Usage:
 #   ./rvocs.sh [action] [--target TARGET] [--arch ARCH] [options] [-- passthrough args]
 #
 # Actions (mutually exclusive, pick one):
-#   --version         print the rvocs-main version; with --target, print that
-#                     target's version plus its upstream component pins
-#   --status          print repo status, artifacts, images and devices
-#   --doctor          environment self-check (first step of Quickstart): host conditions and
-#                     known quirks, followed by the commands to run next
-#   --bom             print the full-stack version matrix (BOM)
-#   --install         install host dependencies (tt-kmd driver / tt-smi / 1G hugepages / udev)
-#   --download [tag]  pull a published image (<RVOCS_REGISTRY>/<tag>) or, with
-#                     --target tt-host, the newest .deb from GitHub Releases
-#   --build           build from source (image or host bundle)
-#   --verify          acceptance checks (in-image smoke / bundle static checks)
-#   --deploy          print the container command; with --yes, run it
-#   --list-targets    print the target/action capability matrix
+#   --version          print the rvocs-main version; with --target, print that
+#                      target's version plus its upstream component pins
+#   --list-releases    print published artifacts from RELEASES.list (global, or
+#                      filtered by --target); newest first
+#   --clone            clone the target vendor repository into the sibling dir
+#                      (no target given: clone all of them)
+#   --doctor           environment self-check: host conditions, known quirks and
+#                      the commands to run next
+#   --install          install host dependencies (tt-kmd / tt-smi / hugepages / udev)
+#   --download [tag]   download the newest published artifact for the target from
+#                      RELEASES.list; with an explicit tag, pull that image
+#   --build            build from source (image or host bundle)
+#   --deploy           start the inference container
+#   --list-targets     print the target/action capability matrix
 #
 # Targets (--target; multiple separated by / or ,):
-#   tt-host   host dependencies (tt-kmd / tt-smi / tt-flash / tt-topology / hugepages)
-#   tt-stack       TT-Metal + vLLM inference image (device: Tenstorrent cards)
-#   therock        ROCm/TheRock + vLLM inference image (device: AMD GPUs)
-#   rvocs          this repository itself (version/status/doctor/bom only)
-#   all            all of the above
+#   tt-host    host dependencies (tt-kmd / tt-smi / tt-flash / tt-topology / hugepages)
+#   tt-stack   TT-Metal + vLLM inference image (aliases: tenstorrent, tt)
+#   therock    ROCm/TheRock + vLLM inference image (aliases: amd, rocm)
+#   rvocs      this repository itself (version / doctor only)
+#   all        all of the above
 #
 # Options:
+#   --target <t>                target(s); required for install/build/deploy
+#   --arch x86|riscv|arm|host   target arch (default host; normalized to x86_64/riscv64/aarch64)
 #   --engine vllm               inference engine (default vllm; llamacpp / sglang are
 #                               planned and rejected until implemented)
-#   --arch x86|riscv|arm|host   target arch (default host; normalized to x86_64/riscv64/aarch64)
-#   --stage <stage>             forwarded to the sub-repo --stage (e.g. image / "fetch workdir" / prep)
-#   --proxy cn|direct|auto      network mode (default auto, probes github.com)
+#   --stage <stage>             forwarded to the sub-repo build (e.g. image / prep)
+#   --proxy cn|direct|auto      network mode (default auto)
 #   --workdir <dir>             work directory (default ./work)
-#   --no-clone                  do not auto-clone sub-repos (offline or existing copies)
-#   --dry-run                   only print the commands that would run
-#   --sync                      with --bom: rewrite the bom versions from the sub-repos
-#   --yes, -y                   allow actions with side effects (deploy / sudo in install)
 #   -h, --help                  show this help
 #   -- <args...>                pass through to the sub-repo script
 #
 # Examples:
 #   ./rvocs.sh --version
+#   ./rvocs.sh --list-releases
+#   ./rvocs.sh --target amd --list-releases
+#   ./rvocs.sh --target therock --clone
 #   ./rvocs.sh --target tt-host --arch riscv --install
 #   ./rvocs.sh --target tt-stack --arch riscv --download
 #   ./rvocs.sh --target tt-stack --arch riscv --build
-#   ./rvocs.sh --target tt-stack/therock/tt-host --version
-#   ./rvocs.sh --target all --doctor
-#   ./rvocs.sh --target therock --arch x86 --build -- --gpu r9700 --jobs 32
+#   ./rvocs.sh --target tt-stack/therock --version
 #
-# Notes: sub-repos are reused as sibling directories (default ../rvocs-hcs-tenstorrent,
-#        ../rvocs-hcs-amd). When missing they are cloned on demand by the action that needs them
-#        (single branch: main; a mirror that still uses master is accepted - the
-#        clone falls back automatically). Use RVOCS_SIBLINGS_DIR /
-#        RVOCS_TT_HOST_DIR / RVOCS_TT_STACK_DIR /
-#        RVOCS_THEROCK_DIR to relocate, --no-clone to disable fetching. This script only translates
-#        arguments and chains stages; it never reimplements build logic. See docs/CLI.md.
+# Notes: sub-repos live as sibling directories (../rvocs-hcs-tenstorrent,
+#        ../rvocs-hcs-amd). They are NOT fetched automatically: run
+#        `./rvocs.sh --clone` (or --target <t> --clone) once, or point at an
+#        existing copy with RVOCS_SIBLINGS_DIR / RVOCS_TT_HOST_DIR /
+#        RVOCS_TT_STACK_DIR / RVOCS_THEROCK_DIR. This script only translates
+#        arguments and chains stages; it never reimplements build logic.
+#        See docs/CLI.md.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,17 +77,15 @@ while [ $# -gt 0 ]; do
     --stage)         STAGE="${2:?--stage requires an argument}"; shift 2 ;;
     --proxy)         PROXY_MODE="${2:?--proxy requires an argument}"; shift 2 ;;
     --workdir)       WORK_DIR="${2:?--workdir requires an argument}"; shift 2; LOG_DIR="$WORK_DIR/logs" ;;
-    --no-clone)      RVOCS_NO_CLONE=1; shift ;;
-    --dry-run)       DRY_RUN=1; shift ;;
-    --sync)          BOM_SYNC=1; shift ;;
-    --yes|-y)        YES=1; shift ;;
     --list-targets)  ACTION=list-targets; shift ;;
+    --list-releases) ACTION=list-releases; shift ;;
+    --clone)         ACTION=clone; shift ;;
     --download)
                      [ -n "$ACTION" ] && die "only one action allowed (already --$ACTION, got $1)"
                      ACTION=download; shift
                      # optional positional tag: --download rvocs-vllm-tt-amd64:v0.1.0
                      if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then DOWNLOAD_REF="$1"; shift; fi ;;
-    --version|--status|--doctor|--bom|--install|--build|--verify|--deploy)
+    --version|--doctor|--install|--build|--deploy)
                      [ -n "$ACTION" ] && die "only one action allowed (already --$ACTION, got $1)"
                      ACTION="${1#--}"; shift ;;
     -h|--help)       usage ;;
@@ -129,20 +125,19 @@ if [ -n "$TARGETS_RAW" ]; then
   case "$TARGETS_RAW" in
     all) for t in $ALL_TARGETS; do add_target "$t"; done ;;
     *)
-      # accept both "a/b/c" and "a,b,c"
       for t in $(printf '%s' "$TARGETS_RAW" | tr '/,' '  '); do add_target "$t"; done ;;
   esac
 fi
 
-# read-only actions default to all targets; actions with side effects must be explicit
+# read-only / orchestration actions work on all targets by default; actions with
+# side effects must name a target explicitly.
 case "$ACTION" in
   version)
-    # bare --version answers "what version is rvocs-main"; targets must be asked for
     [ -n "$TARGETS" ] || TARGETS="rvocs" ;;
-  status|doctor|bom|list-targets)
+  doctor|list-targets|list-releases|clone)
     [ -n "$TARGETS" ] || TARGETS="$ALL_TARGETS" ;;
   download)
-    # an explicit tag needs no target; otherwise require one (image name depends on it)
+    # an explicit tag needs no target; otherwise require one
     if [ -n "${DOWNLOAD_REF:-}" ] && [ -z "$TARGETS" ]; then TARGETS="registry"; fi
     [ -n "$TARGETS" ] || die "download requires a tag or --target:
        ./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0
@@ -153,53 +148,43 @@ case "$ACTION" in
 esac
 
 read -r -a TARGET_ARR <<< "$TARGETS"
-# only actions that actually call a sub-repo script need the repo in place (cloned if missing):
-#   install/build/verify need scripts/build.sh; download decides per target (docker pull needs none);
-#   deploy only needs the image name and deploy settings; read-only actions never hit the network.
+
 case "$ACTION" in
-  build|verify) NEEDS_ENTRY=1 ;;
-  *)            NEEDS_ENTRY=0 ;;
+  version|doctor|list-targets|list-releases|clone) AGGREGATE=1 ;;
+  *)                                                AGGREGATE=0 ;;
+esac
+
+# only build actions need the sub-repo entry script in place
+case "$ACTION" in
+  build) NEEDS_ENTRY=1 ;;
+  *)     NEEDS_ENTRY=0 ;;
 esac
 
 # ---------------------------------------------------------------- pre-flight checks
-# aggregate read-only actions treat targets as a filter, so not every target must support them
-case "$ACTION" in
-  version|status|doctor|bom|list-targets) AGGREGATE=1 ;;
-  *)                                      AGGREGATE=0 ;;
-esac
-
-if [ "$ACTION" != list-targets ] && [ -z "${DOWNLOAD_REF:-}" ]; then
+if [ "$AGGREGATE" = 0 ] && [ -z "${DOWNLOAD_REF:-}" ]; then
   for t in "${TARGET_ARR[@]}"; do
-    [ "$AGGREGATE" = 1 ] || assert_action_supported "$t" "$ACTION"
+    assert_action_supported "$t" "$ACTION"
     [ "$t" = rvocs ] || assert_arch_supported "$t" "$ARCH"
   done
 fi
 
 mkdir -p "$WORK_DIR" "$LOG_DIR"
-# network mode must be settled before any sub-repo clone happens
 case "$ACTION" in
-  # download talks to a container registry or GitHub Releases
-  list-targets|version|status|bom|download) : ;;
+  # these actions never touch the network (except an explicit download, which
+  # talks to the image registry / GitHub Releases, not github.com)
+  list-targets|version|doctor|download|list-releases) : ;;
   *) resolve_proxy ;;
 esac
 
-# action scripts are separate processes: export the facts they need
-# TARGETS holds the orchestration target (tt-host / tt-stack) and must not leak:
-# the vendor build scripts read a same-named variable as their Ubuntu release
-# list (use UBUNTU_TARGETS for that).
-export ARCH PROXY_MODE PROXY DRY_RUN YES STAGE WORK_DIR LOG_DIR SIBLINGS_DIR
-export -n TARGETS 2>/dev/null || true   # keep the value in this shell, drop the export attribute
+# action scripts run as separate processes: export the facts they need
+export ARCH PROXY_MODE PROXY STAGE WORK_DIR LOG_DIR SIBLINGS_DIR
+export -n TARGETS 2>/dev/null || true
 export RVOCS_SIBLINGS_DIR="$SIBLINGS_DIR"
-export BOM_SYNC="${BOM_SYNC:-0}"
-export RVOCS_NO_CLONE="${RVOCS_NO_CLONE:-0}"
 export DOWNLOAD_REF="${DOWNLOAD_REF:-}"
 
 if [ "$NEEDS_ENTRY" = 1 ] && [ -z "${DOWNLOAD_REF:-}" ]; then
   for t in "${TARGET_ARR[@]}"; do require_entry "$t" >/dev/null; done
-  # source builds / install / verify rely on the porting layer; download and deploy do not
-  case "$ACTION" in
-    build|verify) for t in "${TARGET_ARR[@]}"; do check_porting_branch "$t" "$ARCH"; done ;;
-  esac
+  for t in "${TARGET_ARR[@]}"; do check_porting_branch "$t" "$ARCH"; done
 fi
 
 # ---------------------------------------------------------------- plan banner
@@ -223,8 +208,6 @@ banner() {
   printf '  %-12s: %s\n' "siblings" "$SIBLINGS_DIR"
   printf '  %-12s: %s\n' "workdir" "$WORK_DIR"
   [ -n "$STAGE" ] && printf '  %-12s: %s\n' "stage" "$STAGE"
-  [ "$DRY_RUN" = 1 ] && printf '  %-12s: %s\n' "mode" "dry-run (no changes)"
-  [ "$YES" = 1 ] && printf '  %-12s: %s\n' "confirm" "yes (side effects allowed)"
   [ ${#EXTRA[@]} -gt 0 ] && printf '  %-12s: %s\n' "passthrough" "${EXTRA[*]}"
   for t in "${TARGET_ARR[@]}"; do
     if [ "$t" = rvocs ] || [ "$t" = registry ]; then continue; fi
@@ -232,8 +215,7 @@ banner() {
       _br=$(repo_branch "$t"); _hd=$(repo_head "$t")
       printf '  %-13s: %s (%s @ %s)\n' "$t" "$d" "${_br:-not a git repo}" "${_hd:--}"
     else
-      printf '  %-13s: \033[1;33mmissing\033[0m (will be fetched: %s)\n' "$t" \
-        "$(repo_url "$t" 2>/dev/null || echo 'no URL configured')"
+      printf '  %-13s: \033[1;33mmissing\033[0m (clone with: ./rvocs.sh --target %s --clone)\n' "$t" "$t"
     fi
   done
   echo "============================================================"
@@ -256,7 +238,7 @@ print_matrix() {
   done
 }
 
-run_aggregate() { # read-only actions: one call with all targets
+run_aggregate() { # one call with all targets
   local script="$SCRIPT_DIR/scripts/actions/$ACTION.sh" logf="$LOG_DIR/rvocs.log"
   [ -f "$script" ] || die "missing action script: $script"
   if bash "$script" "$TARGETS" 2>&1 | tee -a "$logf"; then
@@ -279,7 +261,7 @@ run_per_target() {
 
 case "$ACTION" in
   list-targets) print_matrix ;;
-  version|status|doctor|bom) run_aggregate ;;
+  version|doctor|list-releases|clone) run_aggregate ;;
   download)
     if [ -n "${DOWNLOAD_REF:-}" ]; then
       echo

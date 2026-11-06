@@ -21,7 +21,7 @@
 #   3) add a section to docs/REPOS.md.
 # ============================================================================
 
-# Targets included in version/status/doctor/bom aggregation (rvocs itself included)
+# Targets included in read-only aggregation (rvocs itself included)
 ALL_TARGETS="rvocs tt-host tt-stack therock"
 
 # directory alias -> canonical id
@@ -124,10 +124,10 @@ repo_part() { # repo_part <id>
 # actions supported by each target (capability matrix)
 target_actions() {
   case "$1" in
-    rvocs)    echo "version status doctor bom" ;;
-    tt-host)  echo "install build download verify version status" ;;
-    tt-stack) echo "build download verify deploy version status" ;;
-    therock)  echo "build download verify deploy version status" ;;
+    rvocs)    echo "version doctor list-targets list-releases" ;;
+    tt-host)  echo "install build download version doctor list-targets list-releases clone" ;;
+    tt-stack) echo "build download deploy version doctor list-targets list-releases clone" ;;
+    therock)  echo "build download deploy version doctor list-targets list-releases clone" ;;
     *)        return 1 ;;
   esac
 }

@@ -34,7 +34,7 @@ Core capabilities:
 - **Patches are the asset**: adaptation is not sprinkled through application code; it is a
   reviewable, replayable patch series per vendor repository, upstreamable.
 - **Traceable versions**: `<repo>/VERSION` + `manifest.yaml` (upstream pins) + gitlinks stay
-  in sync; `baseline.sh` switches a baseline in one command and `--bom` prints the matrix.
+  in sync; `baseline.sh` switches a baseline in one command and `--list-releases` prints the published artifacts.
 - **Artifacts ready to use**: images are published to a public Huawei Cloud SWR namespace,
   host `.deb` packages to GitHub Releases; `--download` leaves a consistently named artifact
   on the local machine.
@@ -124,7 +124,9 @@ The eight-card server is a hardware capability; multi-card validation is in prog
 ```bash
 git clone https://github.com/RVOCs-org/rvocs-main.git
 cd rvocs-main
+./rvocs.sh --clone         # fetch the vendor repositories
 ./rvocs.sh --doctor        # PASS/WARN/FAIL plus the commands to run next
+./rvocs.sh --list-releases # published image tags and .deb names
 ```
 
 ### ② Install host dependencies (Tenstorrent path)
@@ -132,7 +134,7 @@ cd rvocs-main
 ```bash
 # downloads the newest .deb from Releases and installs it
 # (tt-kmd driver + tt-smi/tt-flash/tt-topology + 1G hugepages)
-./rvocs.sh --target tt-host --arch riscv --install --yes
+./rvocs.sh --target tt-host --arch riscv --install
 ```
 
 ### ③ Fetch images and verify
@@ -144,7 +146,7 @@ cd rvocs-main
 
 # Tenstorrent path
 ./rvocs.sh --target tt-stack --arch riscv --download # rvocs-vllm-tt-riscv64:v0.1.0
-./rvocs.sh --target tt-stack --arch riscv --verify
+# in-image acceptance runs as an internal --stage verify of the vendor build
 ```
 
 A single image can also be pulled by tag:
@@ -153,8 +155,7 @@ A single image can also be pulled by tag:
 ### ④ Start the OpenAI-compatible service
 
 ```bash
-./rvocs.sh --target tt-stack --deploy --dry-run   # preview the run command
-./rvocs.sh --target tt-stack --deploy --yes       # start (default model Qwen3-8B, port 8000)
+./rvocs.sh --target tt-stack --deploy       # start (default model Qwen3-8B, port 8000)
 ```
 
 ```bash
@@ -175,6 +176,7 @@ More paths (GPU smoke test, offline install, proxy modes):
 | [Architecture](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md) | layering and target integration trade-offs |
 | [Repositories](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/REPOS.md) | responsibilities and artifacts per repository |
 | [Known quirks](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUIRKS.md) | RISC-V issues and workarounds |
+| [Release list](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASES.list) | published image tags and `.deb` names (used by `--list-releases`) |
 | [Release notes](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) | published artifacts and upstream baselines |
 
 ## 🤝 Contributing

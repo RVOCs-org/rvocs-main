@@ -2,13 +2,13 @@
 # action: version - what version is this, and which upstream is it built from
 #
 #   ./rvocs.sh --version                        # rvocs-main only
-#   ./rvocs.sh --target tt-stack --version   # repo version + upstream components
-#   ./rvocs.sh --target all --version           # every target
+#   ./rvocs.sh --target tt-stack --version     # repo version + upstream components
+#   ./rvocs.sh --target therock --version      # adds the AMD framework components
+#   ./rvocs.sh --target all --version          # every target
 #
-# The repository version comes from <repo>/VERSION (single source of truth, also
-# used for artifact naming); the component pins come from that repo's
-# manifest.yaml, which is how you tell which upstream versions the artifacts of a
-# target are built from.
+# The repository version comes from <repo>/VERSION (single source of truth);
+# component pins come from that repo's manifest.yaml, and AMD framework
+# component versions from config/components.list in this repository.
 #
 # usage: bash scripts/actions/version.sh [target ...]
 set -euo pipefail
@@ -20,8 +20,6 @@ TARGETS="${1:-${TARGETS:-rvocs}}"
 
 row() { printf '  %-14s %s\n' "$1" "$2"; }
 
-# which section of manifest.yaml holds the pins: upstream (git submodules) or
-# sources (fetched at build time)
 manifest_section() { if grep -q '^upstream:' "$1" 2>/dev/null; then echo upstream; else echo sources; fi; }
 
 # component pins of one manifest section, one "name|ref|commit" per line
@@ -57,6 +55,18 @@ print_modules() { # print_modules <manifest> <section>
   done < <(manifest_modules "$mf" "$sec")
 }
 
+# AMD framework components: config/components.list (pipe separated)
+print_amd_components() {
+  local f="$REPO_ROOT/config/components.list" name ver pin
+  [ -f "$f" ] || { row components "(missing: $f)"; return 0; }
+  printf '  %s\n' "framework components (config/components.list):"
+  printf '    %-16s %-16s %s\n' "COMPONENT" "VERSION" "PIN / NOTE"
+  while IFS='|' read -r name ver pin; do
+    case "$name" in ''|'#'*) continue ;; esac
+    printf '    %-16s %-16s %s\n' "$name" "$ver" "$pin"
+  done < "$f"
+}
+
 printf '\n\033[1mRVOCs\033[0m\n'
 
 for t in $TARGETS; do
@@ -69,7 +79,7 @@ for t in $TARGETS; do
     row git "$(repo_branch rvocs) @ $(repo_head rvocs)  dirty=$(repo_dirty_count rvocs)"
     row describe "$(repo_describe rvocs)"
     row sub-repos "$SIBLINGS_DIR"
-    echo "  hint: ./rvocs.sh --target tt-stack --version   # version + upstream pins of a target"
+    echo "  hint: ./rvocs.sh --list-releases   # published artifacts (RELEASES.list)"
     continue
   fi
 
@@ -77,6 +87,8 @@ for t in $TARGETS; do
     printf '\033[1;36m%s\033[0m  \033[1;33mnot found\033[0m\n' "$t"
     row candidates "$SIBLINGS_DIR/{$(repo_dirs_for "$t" | tr ' ' ',')}"
     row remote "$(repo_url "$t" 2>/dev/null || echo '(not configured)')"
+    row hint "./rvocs.sh --target $t --clone"
+    if [ "$t" = therock ]; then print_amd_components; fi
     continue
   fi
 
@@ -90,24 +102,20 @@ for t in $TARGETS; do
   mf="$dir/$(repo_manifest "$t")"
   if [ ! -f "$mf" ]; then
     row manifest "(missing: $mf)"
+    if [ "$t" = therock ]; then print_amd_components; fi
     continue
   fi
 
   case "$t" in
     tt-stack)
-      # concrete local image name (the manifest only keeps the naming pattern)
-      row image "$(image_tag_for tt-stack "$ARCH")"
-      row "local image" "$(image_exists "$(image_tag_for tt-stack "$ARCH")" && echo present || echo 'not pulled')"
-      row "base image" "$(yaml_block_value "$mf" images base)"
       print_modules "$mf" upstream
       ;;
     therock)
-      row image "$(image_tag_for therock "$ARCH")"
-      row "local image" "$(image_exists "$(image_tag_for therock "$ARCH")" && echo present || echo 'not built')"
       rv=$(yaml_block_value "$mf" release rocm_version)
       ch=$(yaml_block_value "$mf" release channel)
       [ -n "$rv" ] && row release "ROCm $rv${ch:+ ($ch)}"
       print_modules "$mf" upstream
+      print_amd_components
       ;;
     tt-host)
       bv=$(yaml_block_value "$mf" bundle version)

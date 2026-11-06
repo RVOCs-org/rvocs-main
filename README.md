@@ -51,16 +51,17 @@ x86 上的 AI 软件基础设施，在 RISC-V 上默认并不存在：驱动、�
 准备好一台带 Tenstorrent 卡的主机：
 
 ```bash
-git clone <rvocs-main>.git && cd rvocs-main
+git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
+./rvocs.sh --clone                         # 按需获取厂商仓库
 
 # ① 宿主机：内核驱动、tt-smi / tt-flash 等工具、1G 大页
-./rvocs.sh --target tt-host --arch riscv --install --yes
+./rvocs.sh --target tt-host --arch riscv --install
 
-# ② 推理镜像：拉现成镜像，或源码构建（首次约 2–4 小时）
+# ② 推理镜像：产物清单见 --list-releases，拉现成镜像或源码构建
 ./rvocs.sh --target tt-stack --arch riscv --download      # 或 --build
 
 # ③ 起服务：OpenAI 兼容 API
-./rvocs.sh --target tt-stack --deploy --yes
+./rvocs.sh --target tt-stack --deploy
 ```
 
 默认模型 `Qwen3-8B`、端口 `8000`，可用 `TT_DEPLOY_MODEL` / `DEPLOY_PORT` 覆盖。
@@ -74,20 +75,23 @@ git clone <rvocs-main>.git && cd rvocs-main
 
 ```bash
 ./rvocs.sh --doctor                       # 环境自检：缺什么、下一步做什么
-./rvocs.sh --status                       # 仓库、产物、镜像、设备现状
-./rvocs.sh --version                      # 版本快照
+./rvocs.sh --version                      # 版本快照与上游组件 pin
+./rvocs.sh --list-releases                # 已发布产物（镜像 tag / .deb 全名）
 ./rvocs.sh --list-targets                 # 可用的栈/加速器与支持的动作
+./rvocs.sh --clone                        # 获取厂商仓库
 ```
 
 | 动作 | 语义 |
 | --- | --- |
 | `--install` | 安装宿主机依赖（驱动、工具、大页） |
-| `--download` | 拉取现成产物（镜像 / 预构建包） |
+| `--list-releases` | 列出已发布产物（读 `RELEASES.list`） |
+| `--download` | 下载最新产物（镜像 / `.deb`） |
 | `--build` | 从源码构建镜像或交付包 |
-| `--verify` | 验收 |
 | `--deploy` | 启动推理服务 |
+| `--clone` | 获取厂商仓库 |
 
-`--target` 选栈与加速器，`--arch` 选架构，`--stage` 只跑某一段，`--proxy` 选网络模式。
+`--target` 选栈与加速器，`--arch` 选架构，`--stage` 只跑某一段，`--proxy` 选网络模式；
+产物清单在 `RELEASES.list` 里维护，新增一个版本只需加一行。
 完整参数见 [docs/CLI.md](docs/CLI.md)。
 
 ---
@@ -99,7 +103,7 @@ git clone <rvocs-main>.git && cd rvocs-main
 | `rvocs-main` | 统一 CLI、全栈版本矩阵、跨仓库验收 |
 | `tt-host` | 宿主机驱动、工具与系统配置 |
 | `tt-stack` | Tenstorrent 软件栈镜像：TT-Metal + vLLM |
-| `amd-the-rock` | AMD ROCm 软件栈镜像：TheRock + PyTorch + vLLM |
+| `rvocs-hcs-amd` | AMD ROCm 软件栈镜像：TheRock + PyTorch + vLLM |
 
 各仓库独立演进；`rvocs-main` 只负责发现它们、翻译参数、串接阶段，不重复实现构建逻辑。
 细节见 [docs/REPOS.md](docs/REPOS.md)。
@@ -111,6 +115,7 @@ git clone <rvocs-main>.git && cd rvocs-main
 | 文档 | 内容 |
 | --- | --- |
 | [docs/INTRODUCTION.md](docs/INTRODUCTION.md) | 项目介绍：定位、架构、支持范围与上手路径（[English](docs/INTRODUCTION.en.md)） |
+| [RELEASES.list](RELEASES.list) | 已发布产物清单（`--list-releases` / `--download` 的数据源） |
 | [RELEASENOTES.md](RELEASENOTES.md) | 已发布的镜像与交付包、对应上游基线、获取方式 |
 | [docs/QUICKSTART.md](docs/QUICKSTART.md) | 分场景上手：自检、驱动与工具、镜像、部署 |
 | [docs/CLI.md](docs/CLI.md) | 全部参数、动作语义、环境变量 |

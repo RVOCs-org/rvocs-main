@@ -24,7 +24,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 - **一条命令跑通全栈**：`rvocs.sh` 统一入口，自检（doctor）→ 宿主机依赖（install）→ 镜像（download/build）→ 验收（verify）→ 服务（deploy），阶段可拆分、可断点续跑。
 - **跨架构、跨发行版**：架构差异在 `patches/<arch>/`，发行版差异在宿主机打包层（`host/`）；当前以 Ubuntu 26.04 LTS 为参考系统，Fedora / RHEL / openRuyi 按同一模型接入，上层命令不变。
 - **补丁即资产**：跨架构适配不在业务代码里打洞，而是沉淀为各厂商仓库的 `patches/<arch>/` 补丁系列，可审查、可回放、可回馈上游。
-- **版本可追溯**：每个仓库的 `VERSION` + `manifest.yaml`（上游 pin）+ gitlink 三方对齐；`baseline.sh` 一条命令切换上游基线，`--bom` 输出全栈版本矩阵。
+- **版本可追溯**：每个仓库的 `VERSION` + `manifest.yaml`（上游 pin）+ gitlink 三方对齐；`baseline.sh` 一条命令切换上游基线，`--version` 查看组件 pin、`--list-releases` 查看已发布产物。
 - **产物开箱即用**：镜像发布在华为云 SWR 公共命名空间，宿主机 `.deb` 发布在 GitHub Releases；`--download` 拉到本地即为统一命名的产物。
 - **多加速器接口**：厂商仓库按 `rvocs-hcs-{vendor}` 命名接入，一条 target 声明能力矩阵即可扩展新设备，动作语义保持一致。
 
@@ -103,14 +103,16 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 ```bash
 git clone https://github.com/RVOCs-org/rvocs-main.git
 cd rvocs-main
+./rvocs.sh --clone         # 按需获取厂商仓库
 ./rvocs.sh --doctor        # 环境自检：PASS/WARN/FAIL，并给出下一步命令
+./rvocs.sh --list-releases # 已发布的镜像 tag 与 .deb 全名
 ```
 
 ### ② 安装宿主机依赖（Tenstorrent 路径）
 
 ```bash
 # 自动从 Releases 下载最新 .deb 并安装（tt-kmd 驱动 + tt-smi/tt-flash/tt-topology + 1G 大页）
-./rvocs.sh --target tt-host --arch riscv --install --yes
+./rvocs.sh --target tt-host --arch riscv --install
 ```
 
 ### ③ 获取镜像并验收
@@ -122,7 +124,7 @@ cd rvocs-main
 
 # Tenstorrent 路径
 ./rvocs.sh --target tt-stack --arch riscv --download # rvocs-vllm-tt-riscv64:v0.1.0
-./rvocs.sh --target tt-stack --arch riscv --verify
+# 镜像内验收由子仓库构建的 --stage verify 完成（不对用户单独开放）
 ```
 
 也可以直接按 tag 拉取镜像：`./rvocs.sh --download rvocs-vllm-tt-riscv64:v0.1.0`。
@@ -130,8 +132,7 @@ cd rvocs-main
 ### ④ 启动 OpenAI 兼容服务
 
 ```bash
-./rvocs.sh --target tt-stack --deploy --dry-run   # 先预览启动命令
-./rvocs.sh --target tt-stack --deploy --yes       # 启动（默认模型 Qwen3-8B，端口 8000）
+./rvocs.sh --target tt-stack --deploy     # 启动（默认模型 Qwen3-8B，端口 8000）
 ```
 
 ```bash
@@ -151,6 +152,7 @@ curl http://localhost:8000/v1/chat/completions \
 | [开发架构](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/ARCHITECTURE.md) | 分层设计与 target 接入取舍 |
 | [仓库说明](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/REPOS.md) | 各仓库职责与产物 |
 | [适配问题记录](https://github.com/RVOCs-org/rvocs-main/blob/main/docs/QUIRKS.md) | RISC-V 已知问题与处置 |
+| [产物清单](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASES.list) | 已发布镜像 tag 与 `.deb` 全名（`--list-releases` 数据源） |
 | [发布说明](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASENOTES.md) | 已发布产物与上游基线 |
 
 ## 🤝 参与贡献

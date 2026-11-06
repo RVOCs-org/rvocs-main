@@ -70,18 +70,23 @@ riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0
 
 ### 获取与使用
 
+产物清单由仓库根目录的 `RELEASES.list` 维护（从新到旧），`--list-releases`、
+`--download`、`--deploy` 都读它；新增一个版本只需在文件里加一行。
+
 ```bash
+./rvocs.sh --list-releases                         # 先看有哪些产物
+
 # 1) 宿主机依赖（riscv64 或 x86_64）
 ./rvocs.sh --target tt-host --arch riscv --download   # 只下载 .deb 到 work/packages/
-./rvocs.sh --target tt-host --arch riscv --install --yes
+./rvocs.sh --target tt-host --arch riscv --install
 
 # 2) 推理镜像（按宿主架构自动选 tag）
 ./rvocs.sh --target tt-stack --arch riscv --download    # -> rvocs-vllm-tt-riscv64:v0.1.0
 ./rvocs.sh --target therock      --arch riscv --download    # -> rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
 
 # 3) 起服务
-./rvocs.sh --target tt-stack --deploy --yes
-./rvocs.sh --target therock      --deploy --yes
+./rvocs.sh --target tt-stack --deploy
+./rvocs.sh --target therock      --deploy
 ```
 
 也可以先 `--download <tag>` 拉单个镜像，再按同名短 tag 部署。

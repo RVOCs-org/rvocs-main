@@ -19,7 +19,6 @@ EXTRA=("$@")
 dir=$(require_entry "$TARGET")
 args=(--arch "$ARCH" --proxy "$PROXY_MODE")
 [ -n "$STAGE" ] && args+=(--stage "$STAGE")
-[ "$DRY_RUN" = 1 ] && args+=(--dry-run)
 
 case "$TARGET" in
   tt-stack)
@@ -44,11 +43,9 @@ esac
 log "run: (cd $dir && bash $(repo_entry "$TARGET") $(quote_cmd "${args[@]}" "${EXTRA[@]}"))"
 run_in "$dir" bash "$(repo_entry "$TARGET")" "${args[@]}" "${EXTRA[@]}"
 
-if [ "$DRY_RUN" != 1 ]; then
-  case "$TARGET" in
-    tt-stack|therock)
-      log "build finished. verify with: ./rvocs.sh --target $TARGET --arch $ARCH --verify" ;;
-    tt-host)
-      log "build finished. install with: ./rvocs.sh --target tt-host --arch $ARCH --install" ;;
-  esac
-fi
+case "$TARGET" in
+  tt-stack|therock)
+    log "build finished. next: ./rvocs.sh --target $TARGET --arch $ARCH --deploy" ;;
+  tt-host)
+    log "build finished. install with: ./rvocs.sh --target tt-host --arch $ARCH --install" ;;
+esac

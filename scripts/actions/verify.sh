@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# action: verify - acceptance checks
+# action: verify - INTERNAL ONLY. Not exposed by rvocs.sh; vendor builds run
+#          their own --stage verify. Kept for internal pipelines.
 #
 #   tenstorrent / therock : the sub-repo --stage verify (in-image smoke: driver,
 #                           runtime, imports, entry points)
@@ -20,13 +21,12 @@ dir=$(require_entry "$TARGET")
 case "$TARGET" in
   tt-stack|therock)
     tag=$(image_tag_for "$TARGET" "$ARCH")
-    if ! image_exists "$tag" && [ "$DRY_RUN" != 1 ]; then
+    if ! image_exists "$tag"; then
       die "no local image $tag.
        build: ./rvocs.sh --target $TARGET --arch $ARCH --build
        or pull: ./rvocs.sh --target $TARGET --arch $ARCH --download"
     fi
     args=(--arch "$ARCH" --proxy "$PROXY_MODE" --stage verify)
-    [ "$DRY_RUN" = 1 ] && args+=(--dry-run)
     if [ "$TARGET" = therock ]; then
       args+=(--gpu "$AMDG_GPU_ID")
     fi
@@ -43,8 +43,7 @@ case "$TARGET" in
     else
       log "no unpacked bundle found; running the static bundle check (build.sh --stage verify)"
       args=(--arch "$ARCH" --proxy "$PROXY_MODE" --stage verify)
-      [ "$DRY_RUN" = 1 ] && args+=(--dry-run)
-      run_in "$dir" bash "$(repo_entry "$TARGET")" "${args[@]}" "${EXTRA[@]}"
+        run_in "$dir" bash "$(repo_entry "$TARGET")" "${args[@]}" "${EXTRA[@]}"
     fi
     ;;
 

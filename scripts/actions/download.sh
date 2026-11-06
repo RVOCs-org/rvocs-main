@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# action: download - fetch published artifacts (no build)
+# action: download - fetch published artifacts listed in RELEASES.list
 #
-#   ./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0
-#       pulls <RVOCS_REGISTRY>/<tag>, then tags it with the short name
+#   ./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0   # one explicit image
 #   ./rvocs.sh --target tt-stack --arch riscv --download
-#       pulls the image this target would build: rvocs-vllm-tt-riscv64:<version>
 #   ./rvocs.sh --target therock --arch riscv --download
-#       pulls rvocs-vllm-therock<rocm>-<gpu>-<arch>:<version>
 #   ./rvocs.sh --target tt-host --arch riscv --download
-#       downloads the newest rvocs-tt-deps_<version>_<debarch>.deb from GitHub Releases
+#
+# The newest version in RELEASES.list wins. Among that version's artifacts the
+# one matching --arch is chosen; use --list-releases to see all of them.
 #
 # usage: bash scripts/actions/download.sh <registry|target> [image-tag]
 set -euo pipefail
@@ -18,9 +17,6 @@ source "$SCRIPT_DIR/../lib/common.sh"
 
 TARGET="${1:-registry}"
 REF="${2:-${DOWNLOAD_REF:-}}"
-shift || true
-shift || true
-EXTRA=("$@")
 
 case "$TARGET" in
   registry|auto)
@@ -29,37 +25,31 @@ case "$TARGET" in
        e.g. ./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0"
     pull_published "$REF"
     log "done. local image: $REF"
-    log "deploy with the matching target so the image name is picked up automatically"
     ;;
 
   tt-stack|therock)
-    ref="${REF:-$(image_tag_for "$TARGET" "$ARCH")}"
-    [ -n "$ref" ] || die "cannot derive an image name for $TARGET/$ARCH"
+    ref="${REF:-$(release_artifact_for_arch "$TARGET" "$ARCH")}"
+    [ -n "$ref" ] || die "no published image for $TARGET/$ARCH in $RELEASES_FILE
+       run: ./rvocs.sh --target $TARGET --list-releases"
     pull_published "$ref"
     log "done. local image: $ref"
     ;;
 
   tt-host)
-    debarch=$(arch_deb "$ARCH")
-    url=$(tt_host_latest_deb "$debarch" || true)
-    [ -n "$url" ] || die "no $debarch package found in $RVOCS_TT_HOST_RELEASES_PAGE
-       (the API/page is unreachable, or the latest release has no such asset)"
-    name=$(basename "$url")
+    name="${REF:-$(release_artifact_for_arch tt-host "$ARCH")}"
+    [ -n "$name" ] || die "no published .deb for tt-host/$ARCH in $RELEASES_FILE
+       run: ./rvocs.sh --target tt-host --list-releases"
+    ver=$(release_latest_version tt-host)
+    url=$(release_download_url "$ver" "$name")
     dest="$WORK_DIR/packages/$name"
-
-    if [ "$DRY_RUN" = 1 ]; then
-      printf '  [dry-run] curl -fL --retry 3 -o %s %s\n' "$dest" "$url"
-      printf '  [dry-run] then: ./rvocs.sh --target tt-host --arch %s --install --yes\n' "$ARCH"
-      exit 0
-    fi
 
     require_cmd curl
     run mkdir -p "$WORK_DIR/packages"
-    log "downloading: $name"
+    log "downloading: $name (version $ver)"
     log "  from $url"
     run curl -fL --retry 3 --connect-timeout 20 -o "$dest" "$url"
     log "downloaded: $dest ($(du -h "$dest" | awk '{print $1}'))"
-    log "install with: ./rvocs.sh --target tt-host --arch $ARCH --install --yes"
+    log "install with: ./rvocs.sh --target tt-host --arch $ARCH --install"
     ;;
 
   *)

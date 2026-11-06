@@ -193,7 +193,7 @@ RISC-V 主机 + 异构加速卡的故障，绝大多数不是「功能没写」�
 ## 附：人工排查顺序
 
 1. `./rvocs.sh --doctor` —— 先排掉宿主/网络/子仓库类问题；
-2. `./rvocs.sh --status` —— 确认源码、构建目录、镜像、设备到底有没有；
+2. `./rvocs.sh --list-targets` 与 `./rvocs.sh --list-releases` —— 确认支持的动作与已发布产物；
 3. `tail -f work/logs/build.log`（或子仓库的 `work/logs/build.log`）—— 找**第一个**错误，不要看最后一个；
 4. 按本页「层」定位：内核（dmesg）→ 运行时（`rocminfo` / `tt-smi`）→ 编译器（链接/JIT）→ 框架（`import`）→ 引擎（serve）；
 5. 修复后固化为补丁（子仓库的 `patches/<arch>/`），而不是手工改构建树。

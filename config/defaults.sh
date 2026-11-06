@@ -109,12 +109,11 @@ engine_planned() { # engine_planned <name>: known, but not implemented yet
 # <RVOCS_REGISTRY>/<tag>, e.g. swr.cn-east-3.myhuaweicloud.com/cloud-mdgx/rvocs-vllm-tt-amd64:v0.1.0
 RVOCS_REGISTRY="${RVOCS_REGISTRY:-swr.cn-east-3.myhuaweicloud.com/cloud-mdgx}"
 
-# tt-host host packages are published as GitHub Releases assets: the action picks
-# the newest .deb that matches the host architecture. Point the slug at a fork or
-# an internal mirror when needed.
+# tt-host .deb files are published as GitHub Releases assets. RELEASES.list holds
+# the exact names/versions; the URL is built as page + /download/<version>/<name>.
+# Point the slug at a fork or an internal mirror when needed.
 RVOCS_TT_HOST_REPO_SLUG="${RVOCS_TT_HOST_REPO_SLUG:-RVOCs-org/rvocs-hcs-tenstorrent}"
 RVOCS_TT_HOST_RELEASES_PAGE="${RVOCS_TT_HOST_RELEASES_PAGE:-https://github.com/${RVOCS_TT_HOST_REPO_SLUG}/releases}"
-RVOCS_TT_HOST_RELEASES_API="${RVOCS_TT_HOST_RELEASES_API:-https://api.github.com/repos/${RVOCS_TT_HOST_REPO_SLUG}/releases/latest}"
 
 # ---- deployment defaults (used by --deploy; every value can be overridden) ----
 TT_DEPLOY_MODEL="${TT_DEPLOY_MODEL:-Qwen3-8B}"

@@ -81,7 +81,7 @@ if [ "$ARCH" = riscv64 ]; then
        after the reboot:
          uname -r && ./rvocs.sh --doctor
        (tt-kmd is rebuilt by DKMS on boot; if it is missing afterwards, re-run
-        ./rvocs.sh --target tt-host --arch riscv --install --yes)
+        ./rvocs.sh --target tt-host --arch riscv --install)
 EOF
   fi
 fi
@@ -246,6 +246,8 @@ echo "       ./rvocs.sh --target therock      --arch $a --download"
 echo "  3) build from source (long running; use nohup/tmux):"
 echo "       ./rvocs.sh --target tt-stack --arch $a --build"
 echo "       ./rvocs.sh --target therock      --arch $a --build"
-echo "  4) verify and start the service:"
-echo "       ./rvocs.sh --target tt-stack --arch $a --verify"
-echo "       ./rvocs.sh --target tt-stack --arch $a --deploy --dry-run"
+echo "  4) start the service:"
+echo "       ./rvocs.sh --target tt-stack --arch $a --deploy"
+echo "  5) published artifacts / vendor repos:"
+echo "       ./rvocs.sh --list-releases"
+echo "       ./rvocs.sh --target tt-stack --clone"

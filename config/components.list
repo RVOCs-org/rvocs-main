@@ -1,0 +1,12 @@
+# ============================================================================
+# AMD stack component versions, printed by `--target therock --version`.
+# Keep in sync with rvocs-hcs-amd/config/sources.sh and its manifest.yaml.
+#
+# Format (pipe separated):  <component>|<version>|<pin or note>
+# ============================================================================
+
+pytorch|2.13.0a0|cf30153c4c131c8164ee7798e5022d810682e2cb
+torchvision|0.28.0|v0.28.0
+triton|3.7.0|5f3f125e8f63c24613f1f73b937442864f263f94
+vllm|0.1.dev1|98dff2a81d747d1dba01a47f939f48c3526d4206
+rccl / nccl|ROCm 10.0.0|TheRock 内置组件，未单独 pin

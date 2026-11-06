@@ -42,8 +42,9 @@
 - **与镜像的兼容性**：镜像内置 tt-umd 的 `KMD_MINIMUM_VERSION=2.0.0` 且无上限检查，因此
   tt-kmd 2.11.x 兼容；已在真实 Wormhole 上验证 tt-smi 6.8.0 + TT-KMD 2.11.0 正常读卡。
 
-**rvocs 侧**：`--install` 负责「找包 → 没有就先建 → 解包 → sudo install」；`--build` 只建包；
-`--verify` 优先跑已解包交付包里的 `verify.sh`（宿主自检），否则跑静态自检。
+**rvocs 侧**：`--install` 负责「从 `RELEASES.list` 找最新 `.deb` → 下载 → sudo install」；
+`--build` 只建包（缺包时才回退到本地构建）；交付包与镜像的验收由子仓库内部的
+`--stage verify` 完成，不作为对外动作开放。
 
 ---
 

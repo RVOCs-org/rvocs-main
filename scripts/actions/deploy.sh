@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# action: deploy - generate the container start command; print-only by default,
-#         actually run it only with --yes
+# action: deploy - start the inference container
+#
+# The image tag is taken from RELEASES.list (newest artifact matching --arch),
+# with the derived local build name as a fallback.
 #
 # Devices and mounts are fixed per accelerator type (matching each sub-repo README):
 #   Tenstorrent : /dev/tenstorrent + /dev/hugepages-1G + a model cache volume
@@ -20,14 +22,14 @@ image_exists_or_warn() {
   local tag="$1"
   image_exists "$tag" && return 0
   warn "no local image $tag"
-  warn "  build: ./rvocs.sh --target $TARGET --arch $ARCH --build"
   warn "  pull : ./rvocs.sh --target $TARGET --arch $ARCH --download"
+  warn "  build: ./rvocs.sh --target $TARGET --arch $ARCH --build"
   return 0
 }
 
 case "$TARGET" in
   tt-stack)
-    tag=$(image_tag_for tt-stack "$ARCH")
+    tag=$(published_image_for tt-stack "$ARCH")
     image_exists_or_warn "$tag"
     cmd=(docker run --rm
          --ipc host
@@ -41,7 +43,7 @@ case "$TARGET" in
     ;;
 
   therock)
-    tag=$(image_tag_for therock "$ARCH")
+    tag=$(published_image_for therock "$ARCH")
     image_exists_or_warn "$tag"
     cmd=(docker run -d
          --name "$AMDG_CONTAINER_NAME"
@@ -70,16 +72,6 @@ echo
 printf '  %s\n' "$(quote_cmd "${cmd[@]}")"
 echo
 
-if [ "$DRY_RUN" = 1 ]; then
-  log "dry-run: not executed"
-  exit 0
-fi
-
-if [ "$YES" != 1 ]; then
-  warn "not executed. Re-run with --yes, or copy the command above into your shell."
-  exit 0
-fi
-
 # For AMD targets, refuse to overwrite an existing container with the same name
 if [ "$TARGET" = therock ] && have_cmd docker \
    && docker ps -a --format '{{.Names}}' | grep -qx "$AMDG_CONTAINER_NAME"; then
@@ -93,5 +85,5 @@ log "starting container..."
 log "started."
 case "$TARGET" in
   tt-stack) log "endpoint: http://127.0.0.1:$DEPLOY_PORT/v1 (model $TT_DEPLOY_MODEL, device $TT_DEPLOY_DEVICE)" ;;
-  therock)     log "logs: docker logs -f $AMDG_CONTAINER_NAME (model path $AMDG_MODELS_DIR/$AMDG_DEPLOY_MODEL)" ;;
+  therock)  log "logs: docker logs -f $AMDG_CONTAINER_NAME (model path $AMDG_MODELS_DIR/$AMDG_DEPLOY_MODEL)" ;;
 esac

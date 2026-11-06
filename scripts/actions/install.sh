@@ -2,12 +2,10 @@
 # action: install - install host dependencies (tt-kmd driver / tt-smi / tt-flash /
 #         tt-topology / 1G hugepages / udev)
 #
-# Scope: tt-host only (other targets get host prerequisites from the distro
-#        and the vendor driver packages).
+# Scope: tt-host only.
 #
-# Flow:  newest .deb from GitHub Releases (downloaded on demand) -> apt/dpkg
-#        fallback: build the local bundle and run its ./install.sh (offline hosts,
-#        or when the release has no asset for this architecture)
+# Flow: newest .deb from RELEASES.list (downloaded on demand) -> apt/dpkg
+#       fallback: build the local bundle and run its ./install.sh
 #
 # usage: bash scripts/actions/install.sh tt-host [-- <install.sh args>]
 set -euo pipefail
@@ -25,22 +23,7 @@ debarch=$(arch_deb "$ARCH")
 # ---------------------------------------------------------------- published .deb
 deb=$(tt_host_deb_local "$debarch")
 if [ -z "$deb" ]; then
-  # dry-run: show the download + install plan without touching the network
-  if [ "$DRY_RUN" = 1 ]; then
-    url=$(tt_host_latest_deb "$debarch" || true)
-    if [ -n "$url" ]; then
-      name=$(basename "$url")
-      printf '  [dry-run] curl -fL --retry 3 -o %s/packages/%s %s\n' "$WORK_DIR" "$name" "$url"
-      if have_cmd apt-get; then
-        printf '  [dry-run] sudo apt-get install -y %s/packages/%s\n' "$WORK_DIR" "$name"
-      else
-        printf '  [dry-run] sudo dpkg -i %s/packages/%s\n' "$WORK_DIR" "$name"
-      fi
-      exit 0
-    fi
-  fi
-
-  log "no local package for $debarch, fetching the latest release"
+  log "no local package for $debarch, fetching the newest published one"
   if bash "$SCRIPT_DIR/download.sh" tt-host; then
     deb=$(tt_host_deb_local "$debarch")
   else
@@ -50,18 +33,6 @@ fi
 
 if [ -n "$deb" ]; then
   log "package: $deb"
-  if [ "$DRY_RUN" = 1 ]; then
-    if have_cmd apt-get; then
-      printf '  [dry-run] sudo apt-get install -y %s\n' "$deb"
-    else
-      printf '  [dry-run] sudo dpkg -i %s\n' "$deb"
-    fi
-    exit 0
-  fi
-
-  [ "$YES" = 1 ] || die "installation loads kernel modules and writes to /etc; re-run with --yes:
-       ./rvocs.sh --target tt-host --arch $ARCH --install --yes"
-
   if have_cmd apt-get; then
     log "installing with apt-get (sudo)"
     run sudo apt-get install -y "$deb"
@@ -84,23 +55,12 @@ find_bundle() {
 
 bundle=$(find_bundle)
 if [ -z "$bundle" ]; then
-  if [ "$DRY_RUN" = 1 ]; then
-    printf '  [dry-run] (cd %s && bash %s --arch %s --proxy %s --dry-run)\n' "$dir" "$(repo_entry "$TARGET")" "$ARCH" "$PROXY_MODE"
-    printf '  [dry-run] then install dist/rvocs-tt-deps_*_%s.deb (or the .tar.zst bundle)\n' "$debarch"
-    exit 0
-  fi
   log "no bundle for $ARCH yet, building it first (fetch -> patch -> wheels -> kmd -> bundle -> verify)"
   run_in "$dir" bash "$(repo_entry "$TARGET")" --arch "$ARCH" --proxy "$PROXY_MODE"
   bundle=$(find_bundle)
   [ -n "$bundle" ] || die "still no dist/rvocs-tt-deps_*_${debarch}.tar.zst after the build"
 fi
 log "bundle: $bundle"
-
-if [ "$DRY_RUN" = 1 ]; then
-  printf '  [dry-run] mkdir -p %s && tar -xf %s -C %s --strip-components=1\n' "$dest" "$bundle" "$dest"
-  printf '  [dry-run] (cd %s && sudo ./install.sh %s)\n' "$dest" "${EXTRA[*]:-}"
-  exit 0
-fi
 
 require_cmd tar
 run mkdir -p "$dest"
@@ -114,9 +74,6 @@ else
 fi
 
 [ -x "$dest/install.sh" ] || die "$dest/install.sh is missing or not executable (unexpected bundle layout?)"
-[ "$YES" = 1 ] || die "installation loads kernel modules and writes to /etc; re-run with --yes:
-       ./rvocs.sh --target tt-host --arch $ARCH --install --yes"
-
 log "running the installer (sudo)"
 ( cd "$dest" && sudo ./install.sh "${EXTRA[@]}" )
 log "install finished. self-check: (cd $dest && ./verify.sh)"
