@@ -9,7 +9,9 @@
 #   3) Published artifacts (docker tags / .deb names) live in RELEASES.list,
 #      grouped by target and host architecture with comment separators, and
 #      are the single source of truth for --list-releases / --download / --deploy.
-#   4) AMD framework component versions live in config/components.list.
+#   4) AMD framework component pins/versions live in rvocs-hcs-amd
+#      (config/sources.sh + manifest.yaml framework_versions); they are read,
+#      never copied.
 # ============================================================================
 version: 1
 
@@ -38,7 +40,7 @@ project:
     architecture: docs/ARCHITECTURE.md
     quirks: docs/QUIRKS.md
     releases: RELEASES.list
-    amd_components: config/components.list
+    amd_components: ../rvocs-hcs-amd/manifest.yaml (framework_versions)
 
 targets:
   tt-host:

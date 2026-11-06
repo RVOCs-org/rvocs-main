@@ -121,9 +121,9 @@ clone 分支默认 `main`，找不到时依次回退 `master`、远端默认分�
 | `rvocs` | 本仓库版本、baseline、git 状态 |
 | `tt-host` | 仓库版本 + `sources` 组件 pin + 交付包路径 |
 | `tt-stack` | 仓库版本 + `upstream` 组件 pin |
-| `therock` | 仓库版本 + ROCm release + `upstream` pin + **框架组件版本**（`config/components.list`） |
+| `therock` | 仓库版本 + ROCm release + `upstream` pin + **框架组件版本**（`config/sources.sh` 的 pin + `manifest.yaml` 的 `framework_versions`） |
 
-`config/components.list` 列出 AMD 栈的 pytorch / triton / torchvision / vllm / RCCL·NCCL 版本与 pin，供 `--target therock --version` 展示；与 `rvocs-hcs-amd/config/sources.sh` 保持一致即可。
+AMD 栈的 pytorch / triton / torchvision / vllm **pin 来自 `rvocs-hcs-amd/config/sources.sh`**，对应的可读版本号来自该仓库 `manifest.yaml` 的 `framework_versions`；RCCL·NCCL 随 TheRock 提供，版本取 `release.rocm_version`。rvocs-main 不再保存这些数值，改基线时只改厂商仓库。
 
 版本信息**不再显示** `image` / `local image`；镜像名请查 `--list-releases`。
 

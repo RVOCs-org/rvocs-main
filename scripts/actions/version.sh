@@ -7,8 +7,9 @@
 #   ./rvocs.sh --target all --version          # every target
 #
 # The repository version comes from <repo>/VERSION (single source of truth);
-# component pins come from that repo's manifest.yaml, and AMD framework
-# component versions from config/components.list in this repository.
+# component pins come from that repo's manifest.yaml; for therock the framework
+# component pins come from its config/sources.sh and the version labels from
+# framework_versions in that same manifest, so nothing is duplicated here.
 #
 # usage: bash scripts/actions/version.sh [target ...]
 set -euo pipefail
@@ -55,16 +56,29 @@ print_modules() { # print_modules <manifest> <section>
   done < <(manifest_modules "$mf" "$sec")
 }
 
-# AMD framework components: config/components.list (pipe separated)
-print_amd_components() {
-  local f="$REPO_ROOT/config/components.list" name ver pin
-  [ -f "$f" ] || { row components "(missing: $f)"; return 0; }
-  printf '  %s\n' "framework components (config/components.list):"
-  printf '    %-16s %-16s %s\n' "COMPONENT" "VERSION" "PIN / NOTE"
-  while IFS='|' read -r name ver pin; do
-    case "$name" in ''|'#'*) continue ;; esac
-    printf '    %-16s %-16s %s\n' "$name" "$ver" "$pin"
-  done < "$f"
+# AMD framework components: pins come from rvocs-hcs-amd/config/sources.sh, the
+# human-readable versions from framework_versions in that repo's manifest.yaml.
+# Nothing is duplicated here, so the pin and the label cannot drift apart.
+print_amd_components() { # <repo dir>
+  local dir="$1" src mf name ref label rv
+  src="$dir/config/sources.sh"
+  mf="$dir/manifest.yaml"
+  if [ ! -f "$src" ]; then
+    row components "(missing: $src)"
+    return 0
+  fi
+  printf '  %s\n' "framework components (pins: config/sources.sh, versions: manifest.yaml framework_versions):"
+  printf '    %-16s %-16s %s\n' "COMPONENT" "VERSION" "PIN"
+  while read -r name ref; do
+    label="-"
+    if [ -f "$mf" ]; then label=$(yaml_block_value "$mf" framework_versions "$name"); fi
+    [ -n "$label" ] || label="-"
+    printf '    %-16s %-16s %s\n' "$name" "$label" "$ref"
+  done < <(awk '/^src_define /{printf "%s %s\n", $2, $4}' "$src")
+
+  rv="-"
+  if [ -f "$mf" ]; then rv=$(yaml_block_value "$mf" release rocm_version); fi
+  printf '    %-16s %-16s %s\n' "rccl / nccl" "ROCm ${rv:--}" "TheRock 内置组件，未单独 pin"
 }
 
 printf '\n\033[1mRVOCs\033[0m\n'
@@ -88,7 +102,7 @@ for t in $TARGETS; do
     row candidates "$SIBLINGS_DIR/{$(repo_dirs_for "$t" | tr ' ' ',')}"
     row remote "$(repo_url "$t" 2>/dev/null || echo '(not configured)')"
     row hint "./rvocs.sh --target $t --clone"
-    if [ "$t" = therock ]; then print_amd_components; fi
+    if [ "$t" = therock ]; then row components "(requires the repository: ./rvocs.sh --target therock --clone)"; fi
     continue
   fi
 
@@ -102,7 +116,7 @@ for t in $TARGETS; do
   mf="$dir/$(repo_manifest "$t")"
   if [ ! -f "$mf" ]; then
     row manifest "(missing: $mf)"
-    if [ "$t" = therock ]; then print_amd_components; fi
+    if [ "$t" = therock ]; then print_amd_components "$dir"; fi
     continue
   fi
 
@@ -115,7 +129,7 @@ for t in $TARGETS; do
       ch=$(yaml_block_value "$mf" release channel)
       [ -n "$rv" ] && row release "ROCm $rv${ch:+ ($ch)}"
       print_modules "$mf" upstream
-      print_amd_components
+      print_amd_components "$dir"
       ;;
     tt-host)
       bv=$(yaml_block_value "$mf" bundle version)
