@@ -8,5 +8,9 @@
 pytorch|2.13.0a0|cf30153c4c131c8164ee7798e5022d810682e2cb
 torchvision|0.28.0|v0.28.0
 triton|3.7.0|5f3f125e8f63c24613f1f73b937442864f263f94
-vllm|0.1.dev1|98dff2a81d747d1dba01a47f939f48c3526d4206
+vllm|0.29.0|98dff2a81d747d1dba01a47f939f48c3526d4206（= 上游 tag v0.29.0）
+# vllm 说明：本仓库 pin 的是源码（上游 tag v0.29.0）。riscv64 由源码构建，
+# 镜像内 wheel 自报 0.29.1.dev0+g98dff2a81（构建时未带 tag 元数据，setuptools-scm
+# 取的 next-dev 版本）；x86_64 走 TheRock 的预编译 wheel（0.29.1.dev1+g0e3a0c887），
+# 两者都不是“0.1.dev1”。
 rccl / nccl|ROCm 10.0.0|TheRock 内置组件，未单独 pin
