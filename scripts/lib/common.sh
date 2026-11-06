@@ -327,8 +327,8 @@ image_exists() { # image_exists <tag>
 }
 
 # ---------------------------------------------------------------- published artifacts
-# Pull a published image and keep the short name, so --deploy (which uses
-# the local name) does not need to know where it came from.
+# Pull a published image and keep the short name, so the deploy helper (which
+# uses the local name) does not need to know where it came from.
 registry_ref() { # registry_ref <name:tag> -> <registry>/<name:tag>
   printf '%s/%s' "${RVOCS_REGISTRY%/}" "$1"
 }

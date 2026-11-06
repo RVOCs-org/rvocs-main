@@ -71,8 +71,8 @@
 - **耗时**：命中 SFPI 预构建包约 2 小时（镜像层构建）；未命中 +90 分钟；
   全量无预构建实测 3h58m。
 
-**rvocs 侧**：`--build` 直接委派（`--stage` 可透传），`--download` 走 `docker pull`，
-`--deploy` 用固定的设备/大页/缓存卷参数生成命令。
+**rvocs 侧**：`--build` 直接委派（`--stage` 可透传），`--download` 走 `docker pull`；
+容器启动暂由厂商仓库 README 的 `docker run` 示例承担（`--deploy` 尚未开放）。
 
 ---
 
@@ -101,7 +101,8 @@
   镜像只含用户态（宿主提供 amdgpu 驱动与 `/dev/kfd`、`/dev/dri`）。
 
 **rvocs 侧**：`--download` 只对 x86_64/aarch64 开放（riscv64 无预构建，直接拒绝并建议 `--build`）；
-`--build` 透传 `--gpu/--jobs/--components/--wheelhouse/--venv`；`--deploy` 固定 AMD 设备与组参数。
+`--build` 透传 `--gpu/--jobs/--components/--wheelhouse/--venv`；容器启动暂由厂商仓库 README 的
+`docker run` 示例承担（`--deploy` 尚未开放）。
 
 ---
 

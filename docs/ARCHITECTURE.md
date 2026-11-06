@@ -85,7 +85,6 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 | `--stage <s>` | `--stage <s>` | 空则用子仓库默认阶段序列 |
 | `--download` | 无（本仓库从 `RELEASES.list` 取产物名并拉取） | 产物清单统一维护 |
 | `--build` | `--stage <s>` | 验收通过子仓库内部的 `--stage verify` 完成 |
-| `--deploy` | 无（本仓库生成 docker 命令） | 子仓库只交付镜像，不定义部署参数 |
 | `--install` | 无（本仓库解包 + `sudo ./install.sh`） | 子仓库交付包里带安装器 |
 
 「rvocs 会多做一点」的地方只有四处，都是为了把跨仓库的隐形约束显式化：
@@ -93,8 +92,8 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 1. **仓库显式获取**：厂商仓库只由 `--clone` 获取（默认分支 `main`，回退 `master`）；其它动作缺仓库时给出 `--clone` 提示，绝不隐式联网；
 2. **部件定位**：`tt-host` 与 `tt-stack` 是同一个厂商仓库的两个部件，入口分别是 `host/scripts/build.sh`
    与 `stack/scripts/build.sh`，pin 与产物也各自在 `host/`、`stack/` 下；
-3. **镜像存在性检查**：`--deploy` 前确认本地有镜像，而不是等到容器里报错；
-4. **产物发现**：`--install` / `--download` / `--deploy` 都从 `RELEASES.list` 取最新版本。
+3. **镜像存在性检查**：内部 deploy helper 启动前确认本地有镜像，而不是等到容器里报错；
+4. **产物发现**：`--install` / `--download` 都从 `RELEASES.list` 取最新版本。
 
 ---
 
@@ -123,7 +122,6 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 | `--clone` | 拉取厂商仓库 | 只写到同级目录；已有目录不被覆盖 |
 | `--download` | 占磁盘、拉网络 | 已有镜像则跳过；只取 `RELEASES.list` 最新版本 |
 | `--build` | 长时间占用 CPU/磁盘 | 必须显式 `--target`，且厂商仓库需先 `--clone` |
-| `--deploy` | 启动容器 | 同名容器已存在时拒绝覆盖；镜像名取自 `RELEASES.list` |
 | `--install` | 加载内核模块、写 `/etc` | 解包到 `work/`，不覆盖系统其它文件 |
 
 ---

@@ -60,7 +60,7 @@ RISC-V 主机 + 异构加速卡的故障，绝大多数不是「功能没写」�
 - **根因**：缺 `/dev/kfd`、`/dev/dri/renderD*`，或当前用户不在 `render` / `video` 组。
 - **检测**：`ls -l /dev/kfd /dev/dri/renderD*`；`id -nG`。
 - **处置**：确认 `amdgpu`/`amdkfd` 已加载；部署时 `--group-add video --group-add render`
-  （`--deploy` 生成命令已包含）。把用户永久加入组需重新登录。
+  （镜像启动示例已包含）。把用户永久加入组需重新登录。
 
 ## 5. 网络（宿主）
 

@@ -126,8 +126,8 @@ target_actions() {
   case "$1" in
     rvocs)    echo "version doctor list-targets list-releases" ;;
     tt-host)  echo "install build download version doctor list-targets list-releases clone" ;;
-    tt-stack) echo "build download deploy version doctor list-targets list-releases clone" ;;
-    therock)  echo "build download deploy version doctor list-targets list-releases clone" ;;
+    tt-stack) echo "build download version doctor list-targets list-releases clone" ;;
+    therock)  echo "build download version doctor list-targets list-releases clone" ;;
     *)        return 1 ;;
   esac
 }
@@ -145,8 +145,6 @@ target_hint() { # target_hint <id> <action>
   case "$id:$action" in
     tt-stack:install|therock:install)
       echo "host dependencies (driver/tools/hugepages) are handled by: ./rvocs.sh --target tt-host --arch <arch> --install" ;;
-    tt-host:deploy)
-      echo "tt-host only sets up the host environment; deploy with: ./rvocs.sh --target tt-stack --deploy" ;;
     rvocs:*)
       echo "rvocs is the orchestration layer itself; available actions: $(target_actions rvocs)" ;;
     *)

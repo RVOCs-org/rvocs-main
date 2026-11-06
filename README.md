@@ -60,11 +60,10 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 # ② 推理镜像：产物清单见 --list-releases，拉现成镜像或源码构建
 ./rvocs.sh --target tt-stack --arch riscv --download      # 或 --build
 
-# ③ 起服务：OpenAI 兼容 API
-./rvocs.sh --target tt-stack --deploy
+# ③ 起服务：--deploy 尚未开放，按 rvocs-hcs-tenstorrent 的 README 用 docker run 启动
 ```
 
-默认模型 `Qwen3-8B`、端口 `8000`，可用 `TT_DEPLOY_MODEL` / `DEPLOY_PORT` 覆盖。
+镜像的启动示例见厂商仓库 README（默认模型 `Qwen3-8B`、端口 `8000`）。
 先看看环境是否就绪：`./rvocs.sh --doctor`。
 
 其它加速器与分阶段构建见 [docs/QUICKSTART.md](docs/QUICKSTART.md)。
@@ -87,7 +86,6 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 | `--list-releases` | 列出已发布产物（读 `RELEASES.list`） |
 | `--download` | 下载最新产物（镜像 / `.deb`） |
 | `--build` | 从源码构建镜像或交付包 |
-| `--deploy` | 启动推理服务 |
 | `--clone` | 获取厂商仓库 |
 
 `--target` 选栈与加速器，`--arch` 选架构，`--stage` 只跑某一段，`--proxy` 选网络模式；

@@ -115,7 +115,8 @@ RVOCS_REGISTRY="${RVOCS_REGISTRY:-swr.cn-east-3.myhuaweicloud.com/cloud-mdgx}"
 RVOCS_TT_HOST_REPO_SLUG="${RVOCS_TT_HOST_REPO_SLUG:-RVOCs-org/rvocs-hcs-tenstorrent}"
 RVOCS_TT_HOST_RELEASES_PAGE="${RVOCS_TT_HOST_RELEASES_PAGE:-https://github.com/${RVOCS_TT_HOST_REPO_SLUG}/releases}"
 
-# ---- deployment defaults (used by --deploy; every value can be overridden) ----
+# ---- deployment defaults (used by the internal deploy helper; --deploy is not
+#      exposed yet, every value can be overridden) ----
 TT_DEPLOY_MODEL="${TT_DEPLOY_MODEL:-Qwen3-8B}"
 TT_DEPLOY_DEVICE="${TT_DEPLOY_DEVICE:-n300}"
 TT_CACHE_VOLUME="${TT_CACHE_VOLUME:-volume_id_$TT_DEPLOY_MODEL}"

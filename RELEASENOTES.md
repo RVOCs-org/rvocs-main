@@ -70,8 +70,8 @@ riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0
 
 ### 获取与使用
 
-产物清单由仓库根目录的 `RELEASES.list` 维护（按 target 与宿主架构两级分组、组内从新到旧），`--list-releases`、
-`--download`、`--deploy` 都读它；新增一个版本只需在文件里加一行。
+产物清单由仓库根目录的 `RELEASES.list` 维护（按 target 与宿主架构两级分组、组内从新到旧），
+`--list-releases`、`--download` 都读它；新增一个版本只需在文件里加一行。
 
 ```bash
 ./rvocs.sh --list-releases                         # 先看有哪些产物
@@ -84,9 +84,7 @@ riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0
 ./rvocs.sh --target tt-stack --arch riscv --download    # -> rvocs-vllm-tt-riscv64:v0.1.0
 ./rvocs.sh --target therock      --arch riscv --download    # -> rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
 
-# 3) 起服务
-./rvocs.sh --target tt-stack --deploy
-./rvocs.sh --target therock      --deploy
+# 3) 起服务：--deploy 暂未开放，按厂商仓库 README 的 docker run 示例启动
 ```
 
 也可以先 `--download <tag>` 拉单个镜像，再按同名短 tag 部署。

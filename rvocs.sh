@@ -17,7 +17,6 @@
 #   --download [tag]   download the newest published artifact for the target from
 #                      RELEASES.list; with an explicit tag, pull that image
 #   --build            build from source (image or host bundle)
-#   --deploy           start the inference container
 #   --list-targets     print the target/action capability matrix
 #
 # Targets (--target; multiple separated by / or ,):
@@ -54,6 +53,8 @@
 #        existing copy with RVOCS_SIBLINGS_DIR / RVOCS_TT_HOST_DIR /
 #        RVOCS_TT_STACK_DIR / RVOCS_THEROCK_DIR. This script only translates
 #        arguments and chains stages; it never reimplements build logic.
+#        Deployment (--deploy) is not exposed yet: start the image with the
+#        docker run example in the vendor repository README.
 #        See docs/CLI.md.
 set -euo pipefail
 
@@ -85,7 +86,7 @@ while [ $# -gt 0 ]; do
                      ACTION=download; shift
                      # optional positional tag: --download rvocs-vllm-tt-amd64:v0.1.0
                      if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then DOWNLOAD_REF="$1"; shift; fi ;;
-    --version|--doctor|--install|--build|--deploy)
+    --version|--doctor|--install|--build)
                      [ -n "$ACTION" ] && die "only one action allowed (already --$ACTION, got $1)"
                      ACTION="${1#--}"; shift ;;
     -h|--help)       usage ;;

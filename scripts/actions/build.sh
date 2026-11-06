@@ -45,7 +45,7 @@ run_in "$dir" bash "$(repo_entry "$TARGET")" "${args[@]}" "${EXTRA[@]}"
 
 case "$TARGET" in
   tt-stack|therock)
-    log "build finished. next: ./rvocs.sh --target $TARGET --arch $ARCH --deploy" ;;
+    log "build finished. start it with the docker run example in the target README (--deploy is not exposed yet)" ;;
   tt-host)
     log "build finished. install with: ./rvocs.sh --target tt-host --arch $ARCH --install" ;;
 esac

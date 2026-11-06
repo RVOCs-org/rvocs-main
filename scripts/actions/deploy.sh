@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# action: deploy - start the inference container
+# action: deploy - INTERNAL ONLY. --deploy is not exposed by rvocs.sh yet;
+#          this script is kept for maintainers until the deploy path is finished.
 #
 # The image tag is taken from RELEASES.list (newest row of this target in the
 # architecture block matching --arch),

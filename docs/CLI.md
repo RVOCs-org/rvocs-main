@@ -19,7 +19,6 @@
 | `--install` | 安装宿主机依赖（tt-kmd / tt-smi / 1G 大页 / udev） | 是 |
 | `--download [tag]` | 下载 `RELEASES.list` 中最新版本的产物；给 tag 时直接拉该镜像 | 给 tag 时不需要 |
 | `--build` | 从源码构建镜像或交付包 | 是 |
-| `--deploy` | 启动推理容器（镜像名取自 `RELEASES.list`） | 是 |
 | `--list-targets` | target × 动作 × 架构能力矩阵 | 否 |
 
 > `--verify` 已不作为对外动作开放；验收由子仓库构建流程内部的 `--stage verify` 完成。
@@ -53,13 +52,15 @@
 | `-h, --help` | — | 显示帮助 |
 | `-- <args...>` | — | 原样透传给子仓库构建脚本 |
 
-**已移除的选项**：`--status`、`--verify`、`--bom`、`--sync`、`--dry-run`、`--yes` / `-y`、`--no-clone`。有副作用的动作（`--install` / `--deploy`）现在直接执行；仓库获取统一走 `--clone`。
+**暂未开放**：`--deploy`（部署路径还在完善，镜像请按厂商仓库 README 的 `docker run` 示例启动）。
+
+**已移除的选项**：`--status`、`--verify`、`--bom`、`--sync`、`--dry-run`、`--yes` / `-y`、`--no-clone`。有副作用的动作（`--install`）直接执行；仓库获取统一走 `--clone`。
 
 ---
 
 ## 4. 已发布产物：`RELEASES.list`
 
-仓库根目录的 `RELEASES.list` 是产物清单的**唯一来源**，`--list-releases`、`--download`、`--deploy` 都读它。
+仓库根目录的 `RELEASES.list` 是产物清单的**唯一来源**，`--list-releases`、`--download`（以及内部的 deploy helper）都读它。
 
 格式（空白分隔，一行一个产物）：
 
@@ -80,7 +81,7 @@
 - `<artifact>`：完整 `.deb` 文件名，或完整 docker tag（短名，不带 registry 前缀）；
 - 镜像从 `<RVOCS_REGISTRY>/<artifact>` 拉取；`.deb` 从
   `<RVOCS_TT_HOST_RELEASES_PAGE>/download/<version>/<artifact>` 下载；
-- `--download` / `--deploy` 取「该 target 在目标架构小段里的第一行」，因此各
+- `--download` 取「该 target 在目标架构小段里的第一行」，因此各
   target、各架构都能独立发版，互不牵连；
 - 新增一个版本：在对应 target + 架构小段的**顶部**插入一行即可，无需改脚本；
   新增 target 或架构则加一段注释 + 若干行。

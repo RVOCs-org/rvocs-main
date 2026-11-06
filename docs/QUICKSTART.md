@@ -80,12 +80,9 @@ RVOCS_TENSTORRENT_DIR=/data/tenstorrent ./rvocs.sh --target tt-stack --build
 
 ### 2.3 起服务
 
-```bash
-./rvocs.sh --target tt-stack --deploy
-```
-
-默认 `Qwen3-8B`、端口 `8000`、设备 `n300`；用 `TT_DEPLOY_MODEL`、`DEPLOY_PORT`、
-`TT_DEPLOY_DEVICE` 覆盖。服务起来后是 OpenAI 兼容接口，例如 `http://127.0.0.1:8000/v1`。
+`--deploy` 暂未开放（部署路径还在完善）。镜像拉取/构建完成后，按
+`rvocs-hcs-tenstorrent` README 里的 `docker run` 示例启动即可；默认模型 `Qwen3-8B`、
+端口 `8000`、设备 `n300`。服务起来后是 OpenAI 兼容接口，例如 `http://127.0.0.1:8000/v1`。
 
 ### 2.4 验收点
 
@@ -105,8 +102,9 @@ AMD ROCm 流程相同，target 换成 `therock`（别名 `amd`）：
 ./rvocs.sh --target amd --list-releases
 ./rvocs.sh --target therock --arch riscv --download
 ./rvocs.sh --target therock --arch riscv --build     # 源码全栈，约 20 小时以上
-./rvocs.sh --target therock --deploy
 ```
+
+启动同样暂未开放 `--deploy`，按 `rvocs-hcs-amd` README 的 `docker run` 示例操作。
 
 x86 主机上同一 target 走官方预构建产物，通常一小时以内即可出镜像。
 支持的栈与加速器见 `./rvocs.sh --list-targets`。

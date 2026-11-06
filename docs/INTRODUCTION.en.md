@@ -154,9 +154,8 @@ A single image can also be pulled by tag:
 
 ### ④ Start the OpenAI-compatible service
 
-```bash
-./rvocs.sh --target tt-stack --deploy       # start (default model Qwen3-8B, port 8000)
-```
+`--deploy` is not exposed yet; start the pulled/built image with the `docker run`
+example in the `rvocs-hcs-tenstorrent` README (default model Qwen3-8B, port 8000).
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \

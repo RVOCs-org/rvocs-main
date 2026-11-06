@@ -8,7 +8,7 @@
 #   2) Machine-readable parameters live in config/ (defaults.sh + repos.sh).
 #   3) Published artifacts (docker tags / .deb names) live in RELEASES.list,
 #      grouped by target and host architecture with comment separators, and
-#      are the single source of truth for --list-releases / --download / --deploy.
+#      are the single source of truth for --list-releases / --download.
 #   4) AMD framework component pins/versions live in rvocs-hcs-amd
 #      (config/sources.sh + manifest.yaml framework_versions); they are read,
 #      never copied.
@@ -67,7 +67,7 @@ targets:
     clone_branch: main
     entry: stack/scripts/build.sh
     branch: main              # single-branch; the riscv64 porting layer lives in stack/patches/riscv64/
-    actions: [build, download, deploy, version, doctor, list-releases, clone]
+    actions: [build, download, version, doctor, list-releases, clone]
     stages: [fetch, workdir, base, image, verify]
     artifact_patterns:
       - rvocs-vllm-tt-<arch>:<version>       # e.g. rvocs-vllm-tt-riscv64:v0.1.0
@@ -82,7 +82,7 @@ targets:
     clone_branch: main
     entry: scripts/build.sh
     branch: main              # single-branch; the riscv64 porting layer lives in patches/riscv64/
-    actions: [build, download, deploy, version, doctor, list-releases, clone]
+    actions: [build, download, version, doctor, list-releases, clone]
     stages: [preflight, fetch, workdir, build, wheels, image, verify]
     artifact_patterns:
       - rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version>    # e.g. rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
@@ -105,6 +105,8 @@ images:
     rocm_version: 10.0.0
     version_source: ../rvocs-hcs-amd/VERSION
 
+# Container start defaults for the internal deploy helper (--deploy is not
+# exposed yet).
 deploy:
   tt-stack:
     model: Qwen3-8B
