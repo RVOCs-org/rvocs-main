@@ -89,15 +89,15 @@ Design trade-offs and the target integration mechanism:
 
 ## 📦 Support matrix
 
-| Stack / path | Target device | riscv64 | x86_64 | aarch64 | Public status |
-|---|---|---|---|---|---|
-| AMD ROCm / TheRock | Radeon AI PRO R9700 (gfx1201) — current reference | ✅ supported | 🔲 pending | 🔲 TBD | ✅ end-to-end LLM validated |
-| Tenstorrent TT-Metal / TT-NN | Wormhole / Blackhole family (n300, …) | 🔶 in progress | ✅ supported | 🔲 TBD | 🔶 component acceptance pass, end-to-end pending real-card validation |
-| CUDA / domestic accelerators | per-device adaptation | 🔲 TBD | 🔲 TBD | 🔲 TBD | 🔲 target extension reserved |
+| Stack / path | Target device | riscv64 | x86_64 | Public status |
+|---|---|---|---|---|
+| AMD ROCm / TheRock | Radeon AI PRO R9700 (gfx1201) — current reference | ✅ supported | 🔲 pending | ✅ end-to-end LLM validated |
+| Tenstorrent TT-Metal / TT-NN | Wormhole / Blackhole family (n300, …) | 🔶 in progress | ✅ supported | 🔶 component acceptance pass, end-to-end pending real-card validation |
+| CUDA / domestic accelerators | per-device adaptation | 🔲 TBD | 🔲 TBD | 🔲 target extension reserved |
 
 Each architecture column shows the state of that stack on that host architecture: **supported** = builds and deploys; **in progress** = build and component acceptance pass with end-to-end validation underway; **pending / TBD** = not ported yet.
 
-Architectures: **riscv64 / x86_64 / aarch64** (target arch must match the host; no cross builds).
+Architectures: **riscv64 / x86_64** (target arch must match the host; no cross builds).
 
 **Inference engine**: **vLLM** today (PagedAttention + continuous batching), selected with
 `--engine`; **llama.cpp** (CPU / edge, no accelerator needed) and **SGLang** (prefix caching,
@@ -114,7 +114,7 @@ The eight-card server is a hardware capability; multi-card validation is in prog
 
 ### Prerequisites
 
-1. A Linux host of the target architecture (riscv64 / x86_64 / aarch64), Ubuntu 24.04 / 26.04.
+1. A Linux host of the target architecture (riscv64 / x86_64); Ubuntu 26.04 LTS is the reference system.
 2. The accelerator: AMD needs a riscv64 kernel ≥ `7.0.0-31-generic` (older kernels ship a
    broken amdgpu); Tenstorrent needs its driver first.
 3. Docker (build and deployment); installing drivers requires sudo.
@@ -151,6 +151,9 @@ cd rvocs-main
 
 A single image can also be pulled by tag:
 `./rvocs.sh --download rvocs-vllm-tt-riscv64:v0.1.0`.
+
+Available image tags are listed in [`RELEASES.list`](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASES.list) (or run
+`./rvocs.sh --list-releases`); the newest tag for the host architecture is picked automatically.
 
 ### ④ Start the OpenAI-compatible service
 

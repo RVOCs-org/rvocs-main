@@ -42,7 +42,7 @@ x86 上的 AI 软件基础设施，在 RISC-V 上默认并不存在：驱动、�
 | AMD ROCm（TheRock） | Radeon AI PRO R9700（gfx1201） | 端到端 LLM 推理已验证 |
 | CUDA / 国产加速卡 | — | 预留扩展位，按 target 接入 |
 
-主机架构：**RISC-V (riscv64)** · x86_64 · aarch64。
+主机架构：**RISC-V (riscv64)** · x86_64。
 
 ---
 

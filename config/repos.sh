@@ -156,9 +156,9 @@ target_hint() { # target_hint <id> <action>
 target_archs() {
   case "$1" in
     tt-host)  echo "riscv64 x86_64" ;;
-    tt-stack) echo "riscv64 x86_64 aarch64" ;;
-    therock)  echo "riscv64 x86_64 aarch64" ;;
-    *)        echo "riscv64 x86_64 aarch64" ;;
+    tt-stack) echo "riscv64 x86_64" ;;
+    therock)  echo "riscv64 x86_64" ;;
+    *)        echo "riscv64 x86_64" ;;
   esac
 }
 

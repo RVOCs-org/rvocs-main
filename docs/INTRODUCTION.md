@@ -35,7 +35,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 **六层软件栈**——上层使用模型接口，底层适配由各设备软件栈承接：
 
 | 层 | 内容 | AMD 参考实现 | Tenstorrent 路径 |
-|---|---|---|---|---|
+|---|---|---|---|
 | L6 应用与服务 | OpenAI-compatible API | vLLM serve | vLLM serve |
 | L5 推理引擎 | 连续批处理 / PagedAttention | vLLM | vLLM + vllm-tt-plugin |
 | L4 深度学习框架 | 训练/推理框架 | PyTorch (ROCm backend) | PyTorch (CPU) + TT-NN |
@@ -73,15 +73,15 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 
 ## 📦 支持范围
 
-| 软件栈 / 路径 | 目标设备 | riscv64 | x86_64 | aarch64 | 当前公开状态 |
-|---|---|---|---|---|---|
-| AMD ROCm / TheRock | Radeon AI PRO R9700（gfx1201）· 当前参考实现 | ✅ 已支持 | 🔲 待支持 | 🔲 待定 | ✅ 端到端 LLM 已验证 |
-| Tenstorrent TT-Metal / TT-NN | Wormhole / Blackhole 系列（n300 等） | 🔶 适配中 | ✅ 已支持 | 🔲 待定 | 🔶 组件验收通过，端到端待真卡验证 |
-| CUDA / 国产加速卡 | 按实际设备适配 | 🔲 待定 | 🔲 待定 | 🔲 待定 | 🔲 预留 target 扩展 |
+| 软件栈 / 路径 | 目标设备 | riscv64 | x86_64 | 当前公开状态 |
+|---|---|---|---|---|
+| AMD ROCm / TheRock | Radeon AI PRO R9700（gfx1201）· 当前参考实现 | ✅ 已支持 | 🔲 待支持 | ✅ 端到端 LLM 已验证 |
+| Tenstorrent TT-Metal / TT-NN | Wormhole / Blackhole 系列（n300 等） | 🔶 适配中 | ✅ 已支持 | 🔶 组件验收通过，端到端待真卡验证 |
+| CUDA / 国产加速卡 | 按实际设备适配 | 🔲 待定 | 🔲 待定 | 🔲 预留 target 扩展 |
 
-三个架构列表示该软件栈在各宿主架构上的状态：**已支持**＝可构建并部署；**适配中**＝构建与组件验收通过、端到端验证推进中；**待支持 / 待定**＝尚未适配。
+架构列表示该软件栈在各宿主架构上的状态：**已支持**＝可构建并部署；**适配中**＝构建与组件验收通过、端到端验证推进中；**待支持 / 待定**＝尚未适配。
 
-覆盖架构：**riscv64 / x86_64 / aarch64**（目标架构须与宿主一致，不做交叉构建）。
+覆盖架构：**riscv64 / x86_64**（目标架构须与宿主一致，不做交叉构建）。
 
 **推理引擎**：当前为 **vLLM**（PagedAttention + continuous batching），通过 `--engine` 选择；
 **llama.cpp**（CPU / 边缘，无需加速卡）与 **SGLang**（前缀缓存，多轮与结构化生成）在规划中，暂不可用。
@@ -94,7 +94,7 @@ RVOCs（RISC-V Open Computing System）是一套**软硬件一体的开放异构
 
 ### 前置条件
 
-1. 一台目标架构的 Linux 主机（riscv64 / x86_64 / aarch64），Ubuntu 24.04 / 26.04。
+1. 一台目标架构的 Linux 主机（riscv64 / x86_64），参考系统 Ubuntu 26.04 LTS。
 2. 对应加速卡：AMD 需 riscv64 内核 ≥ `7.0.0-31-generic`（旧内核 amdgpu 有缺陷）；Tenstorrent 需先装驱动。
 3. Docker（构建与部署）；驱动安装需要 sudo。
 
@@ -128,6 +128,9 @@ cd rvocs-main
 ```
 
 也可以直接按 tag 拉取镜像：`./rvocs.sh --download rvocs-vllm-tt-riscv64:v0.1.0`。
+
+可拉取的镜像 tag 见 [`RELEASES.list`](https://github.com/RVOCs-org/rvocs-main/blob/main/RELEASES.list)，或运行 `./rvocs.sh --list-releases`
+（按宿主架构自动取最新版本）。
 
 ### ④ 启动 OpenAI 兼容服务
 

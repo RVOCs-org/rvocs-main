@@ -35,7 +35,7 @@
 | `therock` | `amd`、`rocm` | `rvocs-hcs-amd` |
 | `all` | — | 全部 |
 
-`--target` 支持 `a/b`、`a,b`。`--arch` 取 `x86` / `riscv` / `arm` / `host`，归一化为 `x86_64` / `riscv64` / `aarch64`；目标架构必须与宿主一致（不做交叉构建）。
+`--target` 支持 `a/b`、`a,b`。`--arch` 取 `x86` / `riscv` / `host`（`arm` 会归一化为 `aarch64`，但 aarch64 暂未纳入支持范围）；目标架构必须与宿主一致（不做交叉构建）。
 
 ---
 
@@ -72,7 +72,7 @@
 
 - 一级用 `# ===== <target> =====` 分出 `tt-host` / `tt-stack` / `therock` 三块；
 - 每块内部再用 `# ---- <arch> ----` 分出 `riscv64`、`x86_64`（产物名里是
-  `amd64`）、`aarch64`（产物名里是 `arm64`）三小段；
+  `amd64`）两小段；
 - 一行产物写进它所属 target 的、对应架构的小段；某个组合没有产物就留一行注释
   说明（例如 therock 的 x86_64 仍在适配中）。
 

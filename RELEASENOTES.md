@@ -97,7 +97,7 @@ riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0
 | riscv64 内核 | AMD 栈要求 ≥ `7.0.0-31-generic`（旧内核 amdgpu 驱动有缺陷）；`--doctor` 会报 FAIL（非阻塞） |
 | riscv64 glibc | ≥ 2.38 才能用预构建 sfpi；≥ 2.41 才能用 tt-deps 的 abi3 wheel |
 | 磁盘 | 仅拉镜像 ≥ 40 GB；源码构建另需 200 GB 以上 |
-| 未提供 | aarch64 产物、`rvocs-runtime-*` 镜像、`.tar.zst` 交付包（可用 `--build` 本地生成） |
+| 未提供 | `rvocs-runtime-*` 镜像、`.tar.zst` 交付包（可用 `--build` 本地生成） |
 
 ### 校验
 

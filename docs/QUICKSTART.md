@@ -9,7 +9,7 @@
 
 | 项 | 要求 |
 | --- | --- |
-| 主机 | Linux（riscv64 / x86_64 / aarch64）；Windows 请用 WSL |
+| 主机 | Linux（riscv64 / x86_64）；Windows 请用 WSL |
 | 仓库 | 克隆 `rvocs-main` 即可，厂商仓库用 `--clone` 按需获取 |
 | 权限 | 构建与部署需要 docker；安装驱动需要 sudo |
 | 网络 | 国内环境用 `--proxy cn`（默认 `auto` 会自行探测） |
