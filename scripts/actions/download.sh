@@ -45,7 +45,11 @@ case "$TARGET" in
     fi
     [ -n "$name" ] && [ -n "$ver" ] || die "no published .deb for tt-host/$ARCH in $RELEASES_FILE
        run: ./rvocs.sh --target tt-host --list-releases"
+    # the .deb lives on github.com: honour --proxy cn / auto detection, the
+    # same way the clone path does
+    [ -n "${PROXY:-}" ] || resolve_proxy
     url=$(release_download_url "$ver" "$name")
+    [ "${PROXY:-0}" = 1 ] && url=$(gh_url "$url")
     dest="$WORK_DIR/packages/$name"
 
     require_cmd curl

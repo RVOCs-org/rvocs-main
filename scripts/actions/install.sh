@@ -40,7 +40,7 @@ if [ -n "$deb" ]; then
     log "installing with dpkg (sudo)"
     run sudo dpkg -i "$deb"
   fi
-  log "install finished. self-check: dpkg -s rvocs-tt-deps | head -3; ls /opt/tt-deps"
+  log "install finished. self-check: dpkg -s tt-deps | head -3; ls /opt/tt-deps"
   exit 0
 fi
 
