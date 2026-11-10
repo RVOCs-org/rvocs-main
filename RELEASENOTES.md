@@ -1,128 +1,120 @@
-# Release notes
+# RVOCs 发布说明
 
-本文件记录 **已实际发布** 的产物（镜像与交付包）、它们对应的上游基线，以及获取方式。
-未发布的内容不列在这里。
+## v1.0.1 · 2026-11-10
 
-命名规则见 [RVOCs 仓库使用说明 §7.4](../RVOCs仓库使用说明.md) 或各仓库 `manifest.yaml`。
+编排层 `rvocs-main` v1.0.1：CLI 精简后的首个对外版本。
 
----
+- 新增 `--list-releases`（按 target + 架构列出已发布产物）与 `--clone`（显式获取厂商仓库）；
+- 移除 `--status` / `--verify` / `--bom` / `--sync` / `--dry-run` / `--yes` / `--no-clone`，
+  `--deploy` 暂不开放（容器启动见厂商仓库 README 的 `docker run` 示例）；
+- 发布产物集中到 `RELEASES.list` 维护，`--download` 与内部部署 helper 共用同一份清单。
 
-## v0.1.0（2026-10-29）
+### 1. 产物总览
 
-首个公开发布。5 个产物：3 个镜像 + 2 个宿主机交付包。
-
-| 产物 | 类型 | 架构 | 发布位置 | 获取命令 |
+| # | 产物 | target | 平台 | 上游基线 |
 |---|---|---|---|---|
-| `rvocs-vllm-tt-riscv64:v0.1.0` | vLLM 推理镜像（Tenstorrent） | riscv64 | SWR | `./rvocs.sh --download rvocs-vllm-tt-riscv64:v0.1.0` |
-| `rvocs-vllm-tt-amd64:v0.1.0` | vLLM 推理镜像（Tenstorrent） | amd64 | SWR | `./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0` |
-| `rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0` | vLLM 推理镜像（AMD GPU） | riscv64 | SWR | `./rvocs.sh --download rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0` |
-| `rvocs-tt-deps_v0.1.0_riscv64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | riscv64 | GitHub Releases | `./rvocs.sh --target tt-host --arch riscv --download` |
-| `rvocs-tt-deps_v0.1.0_amd64.deb` | 宿主机依赖（驱动 + 工具 + 大页 + udev） | amd64 | GitHub Releases | `./rvocs.sh --target tt-host --arch x86 --download` |
+| 1 | `rvocs-tt-deps_v0.1.0_amd64.deb` | `tt-host` | x86_64 宿主机 | tt-kmd 2.11.0 / tt-umd 0.9.14（见 2.1） |
+| 2 | `rvocs-vllm-tt-amd64:v0.1.0` | `tt-stack` | x86_64 + Wormhole / Blackhole | TT-Metal v0.79.0-rc11（见 2.2） |
+| 3 | `rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2` | `therock` | riscv64 + R9700（gfx1201） | ROCm 10.0.0（见 2.3） |
 
-- 镜像 registry 前缀：`swr.cn-east-3.myhuaweicloud.com/cloud-mdgx/`（公开，无需登录）；
-  `--download` 拉取后只保留短名（retag 后会自动删掉 registry 前缀的 tag，`docker images` 里只出现一个 `rvocs-...` 条目）
-- 交付包获取：`./rvocs.sh --target tt-host --arch <arch> --download`（`.deb` 资产发布在 GitHub Releases；如需指向镜像，覆盖 `RVOCS_TT_HOST_RELEASES_*`）
+- 镜像：`swr.cn-east-3.myhuaweicloud.com/cloud-mdgx/<artifact>`（华为云 SWR 公共命名空间）；
+- `.deb`：GitHub Releases，`RVOCs-org/rvocs-hcs-tenstorrent` 的 `v0.1.0` 标签。
 
-### 1. `rvocs-vllm-tt-*`（Tenstorrent 栈）
+### 2. 产物明细
 
-基于 `tt-inference-server` 官方 Dockerfile 源码构建，内含 TT-Metal、vLLM 0.30.0 平台插件与 sfpi 工具链。
+#### 2.1 `rvocs-tt-deps_v0.1.0_amd64.deb` — 宿主机依赖
 
-| 组件 | 版本 | pin |
-|---|---|---|
-| tt-inference-server | 0.22.0 系提交 | `0da24a9debc2f3a01046cbee674fa83f91f4902e` |
-| tt-metal | v0.79.0-rc11 | `29f93c914b6137d22571a6c99df912f359739b54` |
-| vllm-tt-plugin | main | `d84049edcece77c64772a39e92f920f5679efce4`（内部固定 vLLM 0.30.0） |
-| sfpi | 7.78.0 系提交 | `fe971db51e0d67036109a6e57a0ea54524c9c63e` |
-| tt-smi（镜像内） | v3.1.1 | `a2791bfec3324f4cb72a362b413460b89ca2b391` |
-| 基础镜像 | `local/tt-metal/tt-metalium/ubuntu-26.04-riscv64:v1` | 不单独分发 |
-
-运行时入口：`vllm serve`，默认模型 `Qwen3-8B`、端口 8000。
-
-### 2. `rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0`（AMD GPU 栈）
-
-基于 TheRock 超级工程源码构建：ROCm 用户态 + 自建 torch/torchvision/vLLM + amdsmi 绑定。
-
-| 组件 | 版本 / pin |
-|---|---|
-| TheRock | `therock-10.0`（`16adc4d875fd4f65ea23c7c84e1c66706fde3047`） |
-| ROCm | 10.0.0（stable 通道） |
-| 目标 GPU | Radeon AI PRO R9700（`gfx1201`，family `gfx120X-all`） |
-| torch / torchvision | 源码构建（2.11 / 0.26） |
-| vLLM | 与 ROCm 10.0 配套的源码构建版本 |
-| venv | `/opt/venv-torch`（含 wheel 归档 `/opt/vllm-wheels`） |
-
-镜像内启用多卡 NCCL 兼容默认值（`VLLM_RCCL_FIX=1` 于 riscv64）。
-
-### 3. `rvocs-tt-deps_v0.1.0_{riscv64,amd64}.deb`
-
-宿主机依赖包，安装后提供 `/dev/tenstorrent` 与配套工具。
-
-| 组件 | 版本 |
-|---|---|
-| tt-kmd（DKMS 内核驱动） | `ttkmd-2.11.0` |
-| tt-umd（用户态驱动，含 python 绑定） | `v0.9.14`（fetch 阶段可能按工具元数据微调） |
-| tt-smi | `v6.8.0` |
-| tt-flash | `v4.1.0` |
-| tt-topology | `v1.2.20` |
-| 其它 | 1G hugepages 配置、udev 规则、systemd 单元 |
-
-riscv64 包内附带以下内核的预编译 `.ko`：`7.0.0-38-generic`、`7.0.0-31-generic`；其它内核走 DKMS 现场编译。
-
-### 获取与使用
-
-产物清单由仓库根目录的 `RELEASES.list` 维护（按 target 与宿主架构两级分组、组内从新到旧），
-`--list-releases`、`--download` 都读它；新增一个版本只需在文件里加一行。
+- 内容：tt-kmd 内核驱动（DKMS 或预编译）、tt-smi / tt-flash / tt-topology（系统级安装，不建 venv）、
+  持久化 1G hugepages、udev 规则；
+- 适用：Debian / Ubuntu x86_64 宿主机；与发行版自带的 `tt-smi` / `tt-flash` / `tt-topology` 冲突（`Conflicts:`）。
 
 ```bash
-./rvocs.sh --list-releases                         # 先看有哪些产物
-
-# 1) 宿主机依赖（riscv64 或 x86_64）
-./rvocs.sh --target tt-host --arch riscv --download   # 只下载 .deb 到 work/packages/
-./rvocs.sh --target tt-host --arch riscv --install
-
-# 2) 推理镜像（按宿主架构自动选 tag）
-./rvocs.sh --target tt-stack --arch riscv --download    # -> rvocs-vllm-tt-riscv64:v0.1.0
-./rvocs.sh --target therock      --arch riscv --download    # -> rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
-
-# 3) 起服务：--deploy 暂未开放，按厂商仓库 README 的 docker run 示例启动
+./rvocs.sh --target tt-host --arch x86 --download   # -> work/packages/rvocs-tt-deps_v0.1.0_amd64.deb
+./rvocs.sh --target tt-host --arch x86 --install
 ```
 
-也可以先 `--download <tag>` 拉单个镜像，再按同名短 tag 部署。
+内部组件的上游代码版本（`tag/ref @ commit`）：
 
-### 兼容性
+| 组件 | tag / ref | commit | 作用 |
+|---|---|---|---|
+| tt-kmd | `ttkmd-2.11.0` | `c05f2246` | 内核驱动（DKMS），提供 `/dev/tenstorrent` |
+| tt-umd | `v0.9.14` | `5ad28496` | 用户态驱动与 nanobind 绑定（按工具元数据自动对齐） |
+| tt-smi | `v6.8.0` | `e25a4652` | 设备状态与工具链 |
+| tt-flash | `v4.1.0` | `8c749673` | 固件烧写 |
+| tt-topology | `v1.2.20` | `7bd675f8` | 拓扑配置 |
 
-| 项 | 要求 / 说明 |
-|---|---|
-| 架构 | 镜像 tag 中的架构必须与宿主一致；amd64 镜像不能在 riscv64 上运行（`--download` 会加 `--platform` 仅用于搬运） |
-| riscv64 内核 | AMD 栈要求 ≥ `7.0.0-31-generic`（旧内核 amdgpu 驱动有缺陷）；`--doctor` 会报 FAIL（非阻塞） |
-| riscv64 glibc | ≥ 2.38 才能用预构建 sfpi；≥ 2.41 才能用 tt-deps 的 abi3 wheel |
-| 磁盘 | 仅拉镜像 ≥ 40 GB；源码构建另需 200 GB 以上 |
-| 未提供 | `rvocs-runtime-*` 镜像、`.tar.zst` 交付包（可用 `--build` 本地生成） |
+> 包内 `VERSION` 与 `bundle.version` 为 `0.1.1`，控制信息 `Version: 0.1.1`；发布资产按 release tag `v0.1.0` 命名。
 
-### 校验
+#### 2.2 `rvocs-vllm-tt-amd64:v0.1.0` — Tenstorrent 推理镜像
+
+- 平台：x86_64 宿主 + Wormhole / Blackhole 系列（n300 等）；
+- 基础镜像：`ghcr.io/tenstorrent/tt-inference-server/vllm-tt-metal-src-dev-ubuntu-22.04-amd64:0.22.0-v0.79.0-rc11-d84049e`
+  （上游 Dockerfile 路径，`fetch → image → verify`）。
 
 ```bash
-# 镜像 digest
-docker inspect --format '{{index .RepoDigests 0}}' rvocs-vllm-tt-riscv64:v0.1.0
-
-# deb 元信息与内容
-dpkg-deb -I work/packages/rvocs-tt-deps_v0.1.0_riscv64.deb
-dpkg-deb -c work/packages/rvocs-tt-deps_v0.1.0_riscv64.deb | head
+./rvocs.sh --target tt-stack --arch x86 --download   # -> rvocs-vllm-tt-amd64:v0.1.0
 ```
 
-发布时未随 release 附带 `.sha256` 文件，需要校验时请自行计算并与发布记录比对。
+上游组件：
 
-### 已知限制
+| 组件 | tag / ref | commit | 说明 |
+|---|---|---|---|
+| tt-metal | `v0.79.0-rc11` | `29f93c91` | TT-Metalium / TT-NN 核心 |
+| tt-inference-server | commit（原 `v0.22.0` 标签已指向别处） | `0da24a9d` | 官方 Dockerfile、入口与 model_spec |
+| vllm-tt-plugin | `d84049e`（main） | `d84049ed` | vLLM 平台插件（内部 pin `vllm==0.30.0`） |
+| sfpi | commit（`7.78.0` 标签已指向别处） | `fe971db5` | riscv-tt-elf 交叉工具链源码 |
+| tt-smi（镜像内） | `v3.1.1` | `a2791bfe` | 独立 venv 中的设备工具 |
 
-- Tenstorrent 端到端推理尚未在真实卡上验证（验收止于 ttnn / vLLM 导入与镜像内冒烟）。
-- `tt-kmd` 在 riscv64 上仍属 beta，固件相关步骤以 Tenstorrent 官方说明为准。
-- riscv64 的 torch 栈按设计不含 torchvision / numba / opencv-python-headless 等重依赖。
-- 旧内核（< `7.0.0-31-generic`）上 AMD 镜像不可用，需先升级并重启。
+测试数据：
 
----
+![Qwen3-8B / n300 单请求 decode rate（ISL≈1024，OSL=128）](docs/assets/v1.0.1/Qwen3-8B_n300_decode_rate.png)
 
-## 变更记录
+#### 2.3 `rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2` — AMD 推理镜像
 
-| 版本 | 日期 | 说明 |
-|---|---|---|
-| v0.1.0 | 2026-10-29 | 首个公开发布：2 个 Tenstorrent 镜像（riscv64 / amd64）、1 个 TheRock 镜像（riscv64）、2 个 tt-deps 交付包（riscv64 / amd64） |
+- 平台：riscv64 宿主（内核 ≥ `7.0.0-31-generic`）+ Radeon AI PRO R9700（gfx1201 / gfx120X-all）；
+- 镜像内提供 ROCm 用户态、torch / torchvision / triton / vLLM 与 `vllm serve` 入口；
+- 宿主侧只需 amdgpu 驱动与 `/dev/kfd`、`/dev/dri`。
+
+```bash
+./rvocs.sh --target therock --arch riscv --download   # -> rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2
+```
+
+上游组件：
+
+| 组件 | tag / ref | commit | 说明 |
+|---|---|---|---|
+| TheRock | `therock-10.0` | `16adc4d8` | ROCm 超级工程（组件由上游统一 pin） |
+| ROCm | `10.0.0`（stable） | — | 由 TheRock 构建，含 RCCL / NCCL |
+| PyTorch | `release/2.13`（`2.13.0a0`） | `cf30153c` | ROCm/HIP 后端 |
+| torchvision | `v0.28.0` | — | 与 PyTorch 2.13 配套 |
+| Triton | `v3.7.0` | `5f3f125e` | |
+| vLLM | `v0.29.0` | `98dff2a8` | 镜像内 wheel 自报 `0.29.1.dev0+g98dff2a81` |
+| RCCL / NCCL | ROCm 10.0.0 内置 | — | 未单独 pin |
+
+测试数据：
+
+![vLLM Bench 单请求 decode rate（镜像 v0.2.2，vLLM 0.29.1）](docs/assets/v1.0.1/vllm-bench-decode-v0.2.2.png)
+
+测试环境：Radeon AI PRO R9700（按 tp / ep 配置）、ROCm 10.0.0、镜像内 vLLM 0.29.1（wheel 版本）。
+
+### 3. 支持范围与已知限制
+
+| 项 | 状态 |
+|---|---|
+| 宿主架构 | riscv64 / x86_64（aarch64 未纳入支持范围） |
+| `tt-host` | x86_64 已发布 `.deb`；riscv64 交付包暂未发布 |
+| `tt-stack` | x86_64 已发布镜像；riscv64 镜像暂未发布 |
+| `therock` | riscv64 已发布镜像；x86_64 待支持 |
+| `--deploy` | 暂未开放，按厂商仓库 README 的 `docker run` 示例启动 |
+| 多卡 / 大模型 | tp=2 / tp=4 数据见上；更大规模组合仍在推进 |
+
+### 4. 校验方式
+
+```bash
+./rvocs.sh --list-releases                              # 确认产物与版本
+./rvocs.sh --target tt-host --arch x86 --download       # 宿主机包
+./rvocs.sh --target tt-stack --arch x86 --download      # Tenstorrent 镜像
+./rvocs.sh --target therock --arch riscv --download     # AMD 镜像
+```
+
+`--download` 拉镜像后只保留本地短名（registry 前缀的 tag 会被删除），`docker images` 中每个镜像只有一条记录。

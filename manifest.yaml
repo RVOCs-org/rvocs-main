@@ -17,7 +17,7 @@ version: 1
 
 project:
   name: rvocs-main
-  version: v1.0.0
+  version: v1.0.1
   baseline: rvocs-2026.10
   purpose: >-
     Orchestration layer for RVOCs (RISC-V Open Computing System): one CLI to manage

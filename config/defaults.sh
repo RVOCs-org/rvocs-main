@@ -9,7 +9,7 @@
 # VERSION is the single source of truth (also read by other scripts, e.g. for
 # artifact naming); the literal is only a fallback when the file is missing.
 RVOCS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RVOCS_VERSION="${RVOCS_VERSION:-$(tr -d '[:space:]' < "$RVOCS_ROOT/VERSION" 2>/dev/null || echo v1.0.0)}"
+RVOCS_VERSION="${RVOCS_VERSION:-$(tr -d '[:space:]' < "$RVOCS_ROOT/VERSION" 2>/dev/null || echo v1.0.1)}"
 RVOCS_BASELINE="${RVOCS_BASELINE:-rvocs-2026.10}"   # full-stack baseline name (manifest.yaml)
 DEFAULT_PROXY_MODE="${DEFAULT_PROXY_MODE:-auto}"     # cn | direct | auto
 
