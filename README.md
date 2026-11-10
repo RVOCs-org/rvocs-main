@@ -1,7 +1,7 @@
 # RVOCs
 
 **RVOCs（RISC-V Open Computing System）是一套开放的异构 AI 软件栈**：把加速器驱动、用户态运行时、
-深度学习框架与推理引擎串成一条可复现的构建与交付链路，让同一套模型服务能跑在 RISC-V 与 x86 / ARM 主机上。
+深度学习框架与推理引擎串成一条可复现的构建与交付链路，让同一套模型服务能跑在 RISC-V 与 x86 主机上。
 
 `rvocs-main` 是它的统一入口 —— 一个 `rvocs.sh`，统一管理宿主机依赖、设备栈镜像与服务部署。
 
@@ -15,7 +15,7 @@ rvocs.sh  ──┬── 宿主机     驱动 · 工具 · 大页 · 设备节�
 
 ## RVOCs 是什么
 
-- **硬件**：服务器级 CPU（RISC-V / x86 / ARM）＋ 加速器（GPU / NPU / TPU），以 PCIe 与 IOMMU 互联。
+- **硬件**：服务器级 CPU（RISC-V / x86）＋ 加速器（GPU / NPU / TPU），以 PCIe 与 IOMMU 互联。
 - **软件**：操作系统 → 加速器软件栈 → 深度学习框架 → 推理服务，四层各自可替换。
 - **目标**：让「换架构」「换卡」不再等于「重做一套基础设施」——上层模型服务保持不变。
 
@@ -98,12 +98,12 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 
 | 仓库 | 职责 |
 | --- | --- |
-| `rvocs-main` | 统一 CLI、全栈版本矩阵、跨仓库验收 |
-| `tt-host` | 宿主机驱动、工具与系统配置 |
-| `tt-stack` | Tenstorrent 软件栈镜像：TT-Metal + vLLM |
+| `rvocs-main` | 统一 CLI、全栈版本矩阵、发布产物清单 |
+| `rvocs-hcs-tenstorrent` | Tenstorrent 厂商仓库：`host/` 宿主机驱动、工具与系统配置；`stack/` TT-Metal + vLLM 镜像 |
 | `rvocs-hcs-amd` | AMD ROCm 软件栈镜像：TheRock + PyTorch + vLLM |
 
 各仓库独立演进；`rvocs-main` 只负责发现它们、翻译参数、串接阶段，不重复实现构建逻辑。
+`tt-host` 与 `tt-stack` 是 `rvocs-hcs-tenstorrent` 的两个部件（target），不是独立仓库。
 细节见 [docs/REPOS.md](docs/REPOS.md)。
 
 ---

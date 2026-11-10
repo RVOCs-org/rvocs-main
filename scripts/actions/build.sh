@@ -2,7 +2,7 @@
 # action: build - build from source (image or host bundle)
 #
 # Argument translation (rvocs -> sub-repo):
-#   --arch x86|riscv|arm   -> --arch x86_64|riscv64|aarch64
+#   --arch x86|riscv       -> --arch x86_64|riscv64
 #   --proxy cn|direct|auto -> --proxy unchanged
 #   --stage <s>            -> --stage unchanged (sub-repo default when omitted)
 #   -- <args...>           -> appended unchanged (e.g. amd-the-rock --gpu / --jobs / --components)

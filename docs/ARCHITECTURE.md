@@ -131,7 +131,7 @@ rvocs.sh                       ← 唯一入口：解析动作/target/arch，导
 | 约定 | 值 |
 | --- | --- |
 | target id | 小写、`-` 连接（`tt-host`、`tt-stack`、`therock`） |
-| 架构名 | 对内一律 `x86_64` / `riscv64` / `aarch64` |
+| 架构名 | 对内一律 `x86_64` / `riscv64` |
 | 环境变量 | `RVOCS_<ID大写>_DIR` |
 | 工作区 | `work/`（gitignored），日志 `work/logs/{rvocs,build}.log` |
 | 阶段脚本 | `scripts/actions/<动作>.sh`，参数 `<target> [透传...]` |

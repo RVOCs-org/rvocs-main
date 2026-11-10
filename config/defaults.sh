@@ -19,18 +19,16 @@ DEFAULT_PROXY_MODE="${DEFAULT_PROXY_MODE:-auto}"     # cn | direct | auto
 # These are conservative values: one full pass plus some slack.
 DISK_MIN_RISCV64="${DISK_MIN_RISCV64:-260}"
 DISK_MIN_X86_64="${DISK_MIN_X86_64:-120}"
-DISK_MIN_AARCH64="${DISK_MIN_AARCH64:-120}"
 
 # ---- artifact naming (must match what the sub-repos build) ----
 #   tt-stack    : rvocs-vllm-tt-<arch>:<tenstorrent VERSION>
 #   therock     : rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<amd-the-rock VERSION>
 #   tt-host: rvocs-tt-deps_<version>_<debarch>.tar.zst / .deb
-# <arch> follows the OCI convention (amd64 / arm64 / riscv64); <debarch> is the
-# Debian name (amd64 / arm64 / riscv64).
+# <arch> follows the OCI convention (amd64 / riscv64); <debarch> is the Debian
+# name (amd64 / riscv64).
 image_arch() {
   case "$1" in
     x86_64|amd64)   echo amd64 ;;
-    aarch64|arm64)  echo arm64 ;;
     riscv64)        echo riscv64 ;;
     *)              echo "$1" ;;
   esac
@@ -43,7 +41,6 @@ TT_IMAGE_VERSION="${TT_IMAGE_VERSION:-0.22.0-v0.79.0-rc11-d84049e}"
 tt_upstream_image_tag() { # tt_upstream_image_tag <arch>
   case "$1" in
     riscv64)         echo "$TT_UPSTREAM_BASE-ubuntu-26.04-riscv64:$TT_IMAGE_VERSION" ;;
-    aarch64|arm64)   echo "$TT_UPSTREAM_BASE-ubuntu-22.04-arm64:$TT_IMAGE_VERSION" ;;
     *)               echo "$TT_UPSTREAM_BASE-ubuntu-22.04-amd64:$TT_IMAGE_VERSION" ;;
   esac
 }

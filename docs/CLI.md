@@ -35,7 +35,7 @@
 | `therock` | `amd`、`rocm` | `rvocs-hcs-amd` |
 | `all` | — | 全部 |
 
-`--target` 支持 `a/b`、`a,b`。`--arch` 取 `x86` / `riscv` / `host`（`arm` 会归一化为 `aarch64`，但 aarch64 暂未纳入支持范围）；目标架构必须与宿主一致（不做交叉构建）。
+`--target` 支持 `a/b`、`a,b`。`--arch` 取 `x86` / `riscv` / `host`；目标架构必须与宿主一致（不做交叉构建）。
 
 ---
 

@@ -86,7 +86,7 @@
   `workdir`（应用 `patches/<arch>/`）→ `build`（cmake + ninja → `upstream/therock/build/dist/rocm`）→
   `wheels`（pip 或源码编译 → `work/venv-stack` + `work/wheelhouse`）→ `image` → `verify`。
 - **两条路径**：
-  - x86_64/aarch64：`--mode prebuilt`（官方 ROCm tarball）+ `--wheel-mode pip`（官方 wheel），分钟级；
+  - x86_64：`--mode prebuilt`（官方 ROCm tarball）+ `--wheel-mode pip`（官方 wheel），分钟级；
   - riscv64：`--mode source` + `--wheel-mode source`，约 23 小时。
 - **补丁布局**：`patches/<arch>/components.map`（组件 → 路径）+ `<component>/series` + `image/*.py`
   （镜像构建期执行的 Python 补丁，不走 series）。
@@ -100,7 +100,7 @@
 - **已知限制**：已有构建目录不支持切换 GPU family 后重配（需 `baseline.sh clean`）；
   镜像只含用户态（宿主提供 amdgpu 驱动与 `/dev/kfd`、`/dev/dri`）。
 
-**rvocs 侧**：`--download` 只对 x86_64/aarch64 开放（riscv64 无预构建，直接拒绝并建议 `--build`）；
+**rvocs 侧**：`--download` 只对 x86_64 开放（riscv64 无预构建，直接拒绝并建议 `--build`）；
 `--build` 透传 `--gpu/--jobs/--components/--wheelhouse/--venv`；容器启动暂由厂商仓库 README 的
 `docker run` 示例承担（`--deploy` 尚未开放）。
 

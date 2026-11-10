@@ -28,7 +28,7 @@
 #
 # Options:
 #   --target <t>                target(s); required for install/build/deploy
-#   --arch x86|riscv|arm|host   target arch (default host; normalized to x86_64/riscv64/aarch64)
+#   --arch x86|riscv|host       target arch (default host; normalized to x86_64/riscv64)
 #   --engine vllm               inference engine (default vllm; llamacpp / sglang are
 #                               planned and rejected until implemented)
 #   --stage <stage>             forwarded to the sub-repo build (e.g. image / prep)
@@ -99,7 +99,7 @@ done
 
 # ---------------------------------------------------------------- arch normalization
 ARCH=$(normalize_arch "${ARCH_RAW:-${ARCH:-host}}")
-arch_ok "$ARCH" || die "unsupported arch: $ARCH (expected x86|riscv|arm|host)"
+arch_ok "$ARCH" || die "unsupported arch: $ARCH (expected x86|riscv|host)"
 
 # ---------------------------------------------------------------- engine
 RVOCS_ENGINE=$(printf '%s' "${RVOCS_ENGINE_RAW:-${RVOCS_ENGINE:-vllm}}" | tr '[:upper:]' '[:lower:]')
@@ -233,7 +233,7 @@ print_matrix() {
   } | render_tsv
 
   echo
-  echo "Targets (--arch accepts the short forms x86|riscv|arm|host):"
+  echo "Targets (--arch accepts the short forms x86|riscv|host):"
   for t in $ALL_TARGETS; do
     printf '  %-13s %s\n' "$t" "$(repo_label "$t")"
   done

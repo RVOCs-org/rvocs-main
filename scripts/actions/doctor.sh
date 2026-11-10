@@ -50,8 +50,8 @@ host_arch=$(uname -m)
 info "host arch" "$host_arch"
 
 case "$host_arch" in
-  riscv64|x86_64|aarch64) pass "arch supported" "$host_arch" ;;
-  *) fail "arch supported" "untested arch $host_arch (verified: riscv64 / x86_64 / aarch64)" ;;
+  riscv64|x86_64) pass "arch supported" "$host_arch" ;;
+  *) fail "arch supported" "untested arch $host_arch (verified: riscv64 / x86_64)" ;;
 esac
 
 if [ "$ARCH" != "$host_arch" ]; then
@@ -127,7 +127,7 @@ if [ "$ARCH" = riscv64 ]; then
   if have_cmd rustc; then
     rt=$(rustc -vV 2>/dev/null | awk '/^host:/{print $2}')
     case "$rt" in
-      riscv64gc-unknown-linux-gnu|x86_64-unknown-linux-gnu|aarch64-unknown-linux-gnu) pass "rustc host" "$rt" ;;
+      riscv64gc-unknown-linux-gnu|x86_64-unknown-linux-gnu) pass "rustc host" "$rt" ;;
       *) note "rustc host quirk" "vendor triple $rt: abi3 wheel builds panic (Invalid target name); put the rustup toolchain first in PATH" ;;
     esac
     have_cmd rustup && pass "rustup" "$(rustup --version 2>/dev/null | head -n1)" || note "rustup" "not installed: rustup is the easy way to get the official riscv64gc toolchain"
@@ -145,7 +145,6 @@ echo
 echo "[3/6] Disk and memory"
 case "$ARCH" in
   riscv64) need="$DISK_MIN_RISCV64" ;;
-  aarch64) need="$DISK_MIN_AARCH64" ;;
   *)       need="$DISK_MIN_X86_64" ;;
 esac
 avail=$(df -Pk "$REPO_ROOT" 2>/dev/null | awk 'NR==2 {print int($4/1048576)}' || echo 0)

@@ -25,7 +25,7 @@ project:
     sub-repos are never copied and no submodules are used - this repository only
     does discovery, argument translation and stage chaining.
   branches:
-    main: single branch; riscv64 / x86_64 / aarch64 differences are handled by
+    main: single branch; riscv64 / x86_64 differences are handled by
       --arch plus each sub-repo's patches/<arch> overlays
   repos_policy: >-
     Only this repository is required from a user's point of view. Vendor
@@ -93,7 +93,7 @@ images:
   # Naming rule shared by all targets (concrete tags are listed in RELEASES.list):
   #   rvocs-vllm-tt-<arch>:<version>                            tt-stack
   #   rvocs-vllm-therock<rocm major.minor>-<gpu>-<arch>:<version> therock
-  # <arch> is the OCI name: amd64 / arm64 / riscv64
+  # <arch> is the OCI name: amd64 / riscv64
   registry: swr.cn-east-3.myhuaweicloud.com/cloud-mdgx
   tt-stack:
     pattern: rvocs-vllm-tt-<arch>:<version>

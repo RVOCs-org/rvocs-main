@@ -43,20 +43,19 @@ require_cmd() { command -v "$1" >/dev/null 2>&1 || die "missing command: $1"; }
 have_cmd()    { command -v "$1" >/dev/null 2>&1; }
 
 # ---------------------------------------------------------------- architecture
-# Accept short forms (x86 / riscv / arm) and emit the canonical names the
-# sub-repos expect (x86_64 / riscv64 / aarch64).
+# Accept short forms (x86 / riscv) and emit the canonical names the
+# sub-repos expect (x86_64 / riscv64).
 normalize_arch() {
   case "${1:-}" in
     host|"")                      uname -m ;;
     x86|x86_64|amd64|x64)         echo x86_64 ;;
     riscv|riscv64|rv64|rv64gc)    echo riscv64 ;;
-    arm|arm64|aarch64)            echo aarch64 ;;
     *)                            echo "$1" ;;
   esac
 }
 
 arch_ok() {
-  case "$1" in x86_64|riscv64|aarch64) return 0 ;; *) return 1 ;; esac
+  case "$1" in x86_64|riscv64) return 0 ;; *) return 1 ;; esac
 }
 
 # reverse direction: canonical name -> short form (for hint commands, matches --arch)
@@ -64,7 +63,6 @@ arch_short() {
   case "$1" in
     x86_64)  echo x86 ;;
     riscv64) echo riscv ;;
-    aarch64) echo arm ;;
     *)       echo "$1" ;;
   esac
 }
@@ -333,22 +331,20 @@ registry_ref() { # registry_ref <name:tag> -> <registry>/<name:tag>
   printf '%s/%s' "${RVOCS_REGISTRY%/}" "$1"
 }
 
-# OCI name of this host (amd64 / arm64 / riscv64)
+# OCI name of this host (amd64 / riscv64)
 host_image_arch() {
   case "$(uname -m)" in
     x86_64)        echo amd64 ;;
-    aarch64|arm64) echo arm64 ;;
     riscv64)       echo riscv64 ;;
     *)             uname -m ;;
   esac
 }
 
 # architecture encoded in the image name (rvocs-vllm-tt-amd64, ...-r9700-riscv64)
-ref_image_arch() { # ref_image_arch <name:tag> -> amd64|arm64|riscv64 or empty
+ref_image_arch() { # ref_image_arch <name:tag> -> amd64|riscv64 or empty
   local name="${1%%:*}"
   case "$name" in
     *-amd64)   printf 'amd64' ;;
-    *-arm64)   printf 'arm64' ;;
     *-riscv64) printf 'riscv64' ;;
   esac
 }
