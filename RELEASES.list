@@ -31,16 +31,17 @@
 
 # =============================================================== tt-host =====
 # ---- riscv64 ----
-tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_riscv64.deb
+
 # ---- x86_64 (names use amd64) ----
 tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_amd64.deb
 # ============================================================== tt-stack =====
 # ---- riscv64 ----
-tt-stack    v0.1.0    rvocs-vllm-tt-riscv64:v0.1.0
+
 # ---- x86_64 (names use amd64) ----
 tt-stack    v0.1.0    rvocs-vllm-tt-amd64:v0.1.0
 # =============================================================== therock =====
 # ---- riscv64 ----
-therock     v0.1.0    rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0
+therock     v0.2.2    rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2
 # ---- x86_64 (names use amd64) ----
 # x86_64 镜像待支持，暂无已发布产物
+
