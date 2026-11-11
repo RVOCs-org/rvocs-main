@@ -41,7 +41,7 @@
 # ---- riscv64 ----
 
 # ---- x86_64 (names use amd64) ----
-tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_amd64.deb     sha256:986942794429fd16030cba3e7b9bdc8abf32db7840d73563e8f135779ffe7061
+tt-host     v0.1.0    rvocs-tt-deps_v0.1.0_amd64.deb     sha256:e48a51da1d6f3de583a6d85af582be89d595935a551387f71c4acd7910b05764
 # ============================================================== tt-stack =====
 # ---- riscv64 ----
 
