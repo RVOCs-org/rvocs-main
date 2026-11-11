@@ -80,7 +80,7 @@ device software stack:
 ┌─────────────────────────────────────────────────────────────┐
 │  rvocs-vllm-tt-riscv64:v0.1.0        (public SWR namespace) │
 │  rvocs-vllm-therock10.0-r9700-riscv64:v0.1.0                │
-│  rvocs-tt-deps_v0.1.0_riscv64.deb    (GitHub Releases)       │
+│  rvocs-tt-deps_0.1.0_riscv64.deb     (GitHub Releases)       │
 └─────────────────────────────────────────────────────────────┘
 ```
 

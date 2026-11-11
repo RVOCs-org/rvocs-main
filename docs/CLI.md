@@ -76,7 +76,7 @@ manifest digest（即 `docker image inspect --format '{{json .RepoDigests}}'` �
 digest 可用仓库内的工具计算，不必手算：
 
 ```bash
-./scripts/tools/digest.sh dist/rvocs-tt-deps_v0.1.0_amd64.deb      # -> sha256:...
+./scripts/tools/digest.sh dist/rvocs-tt-deps_0.1.0_amd64.deb      # -> sha256:...
 ./scripts/tools/digest.sh rvocs-vllm-tt-amd64:v0.1.0             # 本地镜像或查 registry
 ./scripts/tools/digest.sh --row tt-stack v0.1.0 rvocs-vllm-tt-amd64:v0.1.0   # 直接输出整行
 ```

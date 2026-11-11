@@ -13,7 +13,7 @@
 
 | # | 产物 | target | 平台 | 上游基线 |
 |---|---|---|---|---|
-| 1 | `rvocs-tt-deps_v0.1.0_amd64.deb` | `tt-host` | x86_64 宿主机 | tt-kmd 2.11.0 / tt-umd 0.9.14（见 2.1） |
+| 1 | `rvocs-tt-deps_0.1.0_amd64.deb` | `tt-host` | x86_64 宿主机 | tt-kmd 2.11.0 / tt-umd 0.9.14（见 2.1） |
 | 2 | `rvocs-vllm-tt-amd64:v0.1.0` | `tt-stack` | x86_64 + Wormhole / Blackhole | TT-Metal v0.79.0-rc11（见 2.2） |
 | 3 | `rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2` | `therock` | riscv64 + R9700（gfx1201） | ROCm 10.0.0（见 2.3） |
 
@@ -22,14 +22,14 @@
 
 ### 2. 产物明细
 
-#### 2.1 `rvocs-tt-deps_v0.1.0_amd64.deb` — 宿主机依赖
+#### 2.1 `rvocs-tt-deps_0.1.0_amd64.deb` — 宿主机依赖
 
 - 内容：tt-kmd 内核驱动（DKMS 或预编译）、tt-smi / tt-flash / tt-topology（系统级安装，不建 venv）、
   持久化 1G hugepages、udev 规则；
 - 适用：Debian / Ubuntu x86_64 宿主机；与发行版自带的 `tt-smi` / `tt-flash` / `tt-topology` 冲突（`Conflicts:`）。
 
 ```bash
-./rvocs.sh --target tt-host --arch x86 --download   # -> work/packages/rvocs-tt-deps_v0.1.0_amd64.deb
+./rvocs.sh --target tt-host --arch x86 --download   # -> work/packages/rvocs-tt-deps_0.1.0_amd64.deb
 ./rvocs.sh --target tt-host --arch x86 --install
 ```
 
@@ -43,7 +43,7 @@
 | tt-flash | `v4.1.0` | `8c749673` | 固件烧写 |
 | tt-topology | `v1.2.20` | `7bd675f8` | 拓扑配置 |
 
-> 包内 `VERSION` 与 `bundle.version` 为 `0.1.1`，控制信息 `Version: 0.1.1`；发布资产按 release tag `v0.1.0` 命名。
+> 包内 `VERSION` 为 `0.1.0`（bundle.version `v0.1.0`），控制信息 `Version: 0.1.0`；资产名用去掉 `v` 的版本号，release tag 仍是 `v0.1.0`。包体约 179 MB，其中 `wheelhouse/` 占 184 MB（离线重装工具用）。
 
 #### 2.2 `rvocs-vllm-tt-amd64:v0.1.0` — Tenstorrent 推理镜像
 

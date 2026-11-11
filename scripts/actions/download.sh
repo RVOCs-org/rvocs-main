@@ -57,7 +57,12 @@ case "$TARGET" in
     run mkdir -p "$WORK_DIR/packages"
     log "downloading: $name (version $ver)"
     log "  from $url"
-    run curl -fL --retry 3 --connect-timeout 20 -o "$dest" "$url"
+    if ! run curl -fL --retry 3 --connect-timeout 20 -o "$dest" "$url"; then
+      rm -f "$dest"
+      die "download failed: $url
+       check that <artifact> in $RELEASES_FILE is exactly the asset name on the
+       release page (a republished asset often drops the leading 'v')"
+    fi
     if [ -n "$dg" ]; then
       actual="sha256:$(sha256sum "$dest" | cut -d' ' -f1)"
       if [ "$actual" != "$dg" ]; then
