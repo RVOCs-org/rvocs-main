@@ -75,7 +75,8 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 ```bash
 ./rvocs.sh --doctor                       # 环境自检：缺什么、下一步做什么
 ./rvocs.sh --version                      # 版本快照与上游组件 pin
-./rvocs.sh --list-releases                # 已发布产物（镜像 tag / .deb 全名）
+./rvocs.sh --list-releases                # 已发布产物（按 target 分组，含 digest）
+./scripts/tools/digest.sh <deb|镜像>       # 计算产物 digest（填 RELEASES.list 用）
 ./rvocs.sh --list-targets                 # 可用的栈/加速器与支持的动作
 ./rvocs.sh --clone                        # 获取厂商仓库
 ```

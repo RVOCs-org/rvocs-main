@@ -70,7 +70,16 @@
 
 `<digest>` 是产物的 sha256（带 `sha256:` 前缀）：`.deb` 是文件哈希；镜像是 registry
 manifest digest（即 `docker image inspect --format '{{json .RepoDigests}}'` 里记录的值）。
-`--download` 下载完成后会校验，不匹配则报错并不保留产物；该列留空则跳过校验。
+`--download` 下载完成后会校验，不匹配则报错（**文件保留在本地**，便于排查是资产被替换还是清单过期）；
+该列留空则跳过校验。
+
+digest 可用仓库内的工具计算，不必手算：
+
+```bash
+./scripts/tools/digest.sh dist/rvocs-tt-deps_v0.1.0_amd64.deb      # -> sha256:...
+./scripts/tools/digest.sh rvocs-vllm-tt-amd64:v0.1.0             # 本地镜像或查 registry
+./scripts/tools/digest.sh --row tt-stack v0.1.0 rvocs-vllm-tt-amd64:v0.1.0   # 直接输出整行
+```
 
 **按 target 与宿主架构两级分区**：
 

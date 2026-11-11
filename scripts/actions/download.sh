@@ -61,11 +61,11 @@ case "$TARGET" in
     if [ -n "$dg" ]; then
       actual="sha256:$(sha256sum "$dest" | cut -d' ' -f1)"
       if [ "$actual" != "$dg" ]; then
-        rm -f "$dest"
         die "digest mismatch for $name
        expected: $dg
        actual  : $actual
-       removed the downloaded file; the asset was replaced or RELEASES.list is stale"
+       the file is kept at $dest for inspection; if the asset was republished
+       on purpose, update RELEASES.list, otherwise do not use it"
       fi
       log "digest verified: $dg"
     else
