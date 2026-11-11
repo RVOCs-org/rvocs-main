@@ -65,8 +65,12 @@
 格式（空白分隔，一行一个产物）：
 
 ```
-<target>    <version>    <artifact>
+<target>    <version>    <artifact>    <digest>
 ```
+
+`<digest>` 是产物的 sha256（带 `sha256:` 前缀）：`.deb` 是文件哈希；镜像是 registry
+manifest digest（即 `docker image inspect --format '{{json .RepoDigests}}'` 里记录的值）。
+`--download` 下载完成后会校验，不匹配则报错并不保留产物；该列留空则跳过校验。
 
 **按 target 与宿主架构两级分区**：
 

@@ -349,8 +349,22 @@ ref_image_arch() { # ref_image_arch <name:tag> -> amd64|riscv64 or empty
   esac
 }
 
-pull_published() { # pull_published <name:tag>
-  local ref="$1" full img_arch host_arch
+# Digest of a pulled image: docker records the registry manifest digest in
+# RepoDigests (both the classic and the containerd image store do this). Fall
+# back to the image ID for images that carry no repo digest.
+image_digest_matches() { # <ref> <sha256:...>
+  local ref="$1" want="$2" have
+  have=$(docker image inspect "$ref" --format '{{range .RepoDigests}}{{println .}}{{end}}' 2>/dev/null \
+         | sed -n 's/.*@\(sha256:[0-9a-f]\{64\}\)$/\1/p')
+  case "$(printf '%s\n' "$have")" in
+    *"$want"*) return 0 ;;
+  esac
+  have=$(docker image inspect "$ref" --format '{{.Id}}' 2>/dev/null)
+  [ "$have" = "$want" ]
+}
+
+pull_published() { # pull_published <name:tag> [expected-digest]
+  local ref="$1" want_digest="${2:-}" full img_arch host_arch
   full=$(registry_ref "$ref")
   img_arch=$(ref_image_arch "$ref")
   host_arch=$(host_image_arch)
@@ -369,6 +383,9 @@ pull_published() { # pull_published <name:tag>
     else
       printf '  [dry-run] docker pull %s\n' "$full"
     fi
+    if [ -n "$want_digest" ]; then
+      printf '  [dry-run] verify digest %s\n' "$want_digest"
+    fi
     if [ "$full" != "$ref" ]; then
       printf '  [dry-run] docker tag %s %s\n' "$full" "$ref"
       printf '  [dry-run] docker rmi %s\n' "$full"
@@ -386,6 +403,18 @@ pull_published() { # pull_published <name:tag>
   else
     run docker pull "$full"
   fi
+  if [ -n "$want_digest" ]; then
+    if image_digest_matches "$full" "$want_digest"; then
+      log "digest verified: $want_digest"
+    else
+      die "digest mismatch for $full
+       expected: $want_digest
+       actual  : $(docker image inspect "$full" --format '{{.Id}}' 2>/dev/null)
+       the tag was republished or RELEASES.list is stale; verify before using it"
+    fi
+  else
+    warn "no digest recorded for $ref in $RELEASES_FILE: skipping verification"
+  fi
   if [ "$full" != "$ref" ]; then
     run docker tag "$full" "$ref"
     # keep a single reference: drop the registry-prefixed tag so `docker images`
@@ -400,15 +429,15 @@ pull_published() { # pull_published <name:tag>
 
 # ---------------------------------------------------------------- published releases
 # RELEASES.list is the single source of truth for published artifacts. One line
-# per artifact:  <target> <version> <artifact>. Lines are grouped by target and,
+# per artifact:  <target> <version> <artifact> [digest]. Lines are grouped by target and,
 # inside each target, by host architecture (comment separators); within a
 # (target, architecture) block the newest version comes first, so every
 # target/architecture pair can advance independently.
-release_rows() { # -> target<TAB>version<TAB>artifact
+release_rows() { # -> target<TAB>version<TAB>artifact<TAB>digest
   [ -f "$RELEASES_FILE" ] || return 1
   awk 'BEGIN { FS="[[:space:]]+" }
        /^[[:space:]]*#/ || NF == 0 { next }
-       NF >= 3 { print $1 "\t" $2 "\t" $3 }' "$RELEASES_FILE"
+       NF >= 3 { print $1 "\t" $2 "\t" $3 "\t" $4 }' "$RELEASES_FILE"
 }
 
 release_latest_version() { # <target> -> highest version listed for the target
@@ -434,16 +463,16 @@ release_arch_matches() { # <artifact> <arch> -> 0 when the artifact targets that
   return 1
 }
 
-release_rows_for_arch() { # <target> <arch> -> version<TAB>artifact, newest first
-  local t="$1" arch="$2" ver art
-  while IFS=$'\t' read -r _ ver art; do
+release_rows_for_arch() { # <target> <arch> -> version<TAB>artifact<TAB>digest
+  local t="$1" arch="$2" ver art dg
+  while IFS=$'\t' read -r _ ver art dg; do
     if release_arch_matches "$art" "$arch"; then
-      printf '%s\t%s\n' "$ver" "$art"
+      printf '%s\t%s\t%s\n' "$ver" "$art" "$dg"
     fi
   done < <({ release_rows || true; } | awk -v t="$t" '$1 == t')
 }
 
-release_latest_for_arch() { # <target> <arch> -> newest version<TAB>artifact
+release_latest_for_arch() { # <target> <arch> -> newest version<TAB>artifact<TAB>digest
   release_rows_for_arch "$1" "$2" | sed -n '1p'
 }
 
@@ -458,10 +487,19 @@ release_artifact_for_arch() { # <target> <arch> -> newest artifact for that arch
   printf '%s' "$a"
 }
 
+release_digest_for_arch() { # <target> <arch> -> digest of the newest artifact
+  release_latest_for_arch "$1" "$2" | cut -f3
+}
+
 release_version_of_artifact() { # <target> <artifact> -> version of that exact artifact
   local t="$1" art="$2"
   { release_rows || true; } | awk -v t="$t" -v a="$art" \
     '$1 == t && $3 == a { print $2; exit }'
+}
+
+release_digest_of_artifact() { # <artifact> (any target) -> recorded digest, empty if absent
+  local art="$1"
+  { release_rows || true; } | awk -v a="$art" '$3 == a { print $4; exit }'
 }
 
 release_download_url() { # <version> <artifact> -> tt-host .deb download URL

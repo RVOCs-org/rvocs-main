@@ -23,7 +23,7 @@ tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
 
 {
-  printf 'TARGET\tVERSION\tARTIFACT\tNOTE\n'
+  printf 'TARGET\tVERSION\tARTIFACT\tDIGEST\tNOTE\n'
   for t in $ALL_TARGETS; do
     [ "$t" = rvocs ] && continue
     if [ "$show_all" != 1 ]; then
@@ -31,11 +31,11 @@ trap 'rm -f "$tmp"' EXIT
     fi
     latest=$(release_latest_version "$t" || true)
     [ -n "$latest" ] || continue
-    while IFS=$'\t' read -r tt ver art; do
+    while IFS=$'\t' read -r tt ver art dg; do
       [ "$tt" = "$t" ] || continue
       note=""
       [ "$ver" = "$latest" ] && note="latest"
-      printf '%s\t%s\t%s\t%s\n' "$tt" "$ver" "$art" "$note"
+      printf '%s\t%s\t%s\t%s\t%s\n' "$tt" "$ver" "$art" "${dg:--}" "$note"
     done < <(release_rows)
   done
 } > "$tmp"

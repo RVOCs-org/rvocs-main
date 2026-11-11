@@ -24,7 +24,7 @@ case "$TARGET" in
     # an explicit tag is self-describing: no target/arch validation needed
     [ -n "$REF" ] || die "usage: ./rvocs.sh --download <name:tag>
        e.g. ./rvocs.sh --download rvocs-vllm-tt-amd64:v0.1.0"
-    pull_published "$REF"
+    pull_published "$REF" "$(release_digest_of_artifact "$REF")"
     log "done. local image: $REF"
     ;;
 
@@ -32,7 +32,7 @@ case "$TARGET" in
     ref="${REF:-$(release_artifact_for_arch "$TARGET" "$ARCH" || true)}"
     [ -n "$ref" ] || die "no published image for $TARGET/$ARCH in $RELEASES_FILE
        run: ./rvocs.sh --target $TARGET --list-releases"
-    pull_published "$ref"
+    pull_published "$ref" "$(release_digest_for_arch "$TARGET" "$ARCH")"
     log "done. local image: $ref"
     ;;
 
@@ -40,8 +40,9 @@ case "$TARGET" in
     if [ -n "$REF" ]; then
       name="$REF"
       ver=$(release_version_of_artifact tt-host "$name")
+      dg=$(release_digest_of_artifact "$name")
     else
-      IFS=$'	' read -r ver name < <(release_latest_for_arch tt-host "$ARCH") || true
+      IFS=$'	' read -r ver name dg < <(release_latest_for_arch tt-host "$ARCH") || true
     fi
     [ -n "$name" ] && [ -n "$ver" ] || die "no published .deb for tt-host/$ARCH in $RELEASES_FILE
        run: ./rvocs.sh --target tt-host --list-releases"
@@ -57,6 +58,19 @@ case "$TARGET" in
     log "downloading: $name (version $ver)"
     log "  from $url"
     run curl -fL --retry 3 --connect-timeout 20 -o "$dest" "$url"
+    if [ -n "$dg" ]; then
+      actual="sha256:$(sha256sum "$dest" | cut -d' ' -f1)"
+      if [ "$actual" != "$dg" ]; then
+        rm -f "$dest"
+        die "digest mismatch for $name
+       expected: $dg
+       actual  : $actual
+       removed the downloaded file; the asset was replaced or RELEASES.list is stale"
+      fi
+      log "digest verified: $dg"
+    else
+      warn "no digest recorded for $name in $RELEASES_FILE: skipping verification"
+    fi
     log "downloaded: $dest ($(du -h "$dest" | awk '{print $1}'))"
     log "install with: ./rvocs.sh --target tt-host --arch $ARCH --install"
     ;;
