@@ -170,6 +170,21 @@ if [ "$AGGREGATE" = 0 ] && [ -z "${DOWNLOAD_REF:-}" ]; then
 fi
 
 mkdir -p "$WORK_DIR" "$LOG_DIR"
+
+# `sudo -E ./rvocs.sh ...` runs the whole tool as root, so work/ and the log
+# files are created root-owned and a later unprivileged run dies with
+# "tee: ... Permission denied". Hand the writable parts back to the caller, and
+# do it again on exit for the logs written during this run.
+if [ "$(id -u)" = 0 ] && [ -n "${SUDO_UID:-}" ] && [ "${SUDO_UID}" != 0 ]; then
+  SUDO_GID="${SUDO_GID:-$SUDO_UID}"
+  chown "$SUDO_UID:$SUDO_GID" "$WORK_DIR" 2>/dev/null || true
+  chown -R "$SUDO_UID:$SUDO_GID" "$LOG_DIR" 2>/dev/null || true
+  if [ -d "$WORK_DIR/packages" ]; then
+    chown -R "$SUDO_UID:$SUDO_GID" "$WORK_DIR/packages" 2>/dev/null || true
+  fi
+  trap 'chown -R "$SUDO_UID:$SUDO_GID" "$LOG_DIR" 2>/dev/null || true; chown "$SUDO_UID:$SUDO_GID" "$WORK_DIR" 2>/dev/null || true' EXIT
+fi
+
 case "$ACTION" in
   # these actions never touch the network (except an explicit download, which
   # talks to the image registry / GitHub Releases, not github.com)
@@ -242,6 +257,10 @@ print_matrix() {
 run_aggregate() { # one call with all targets
   local script="$SCRIPT_DIR/scripts/actions/$ACTION.sh" logf="$LOG_DIR/rvocs.log"
   [ -f "$script" ] || die "missing action script: $script"
+  if ! : >>"$logf" 2>/dev/null; then
+    warn "cannot write $logf; continuing without a log file"
+    logf=/dev/null
+  fi
   if bash "$script" "$TARGETS" 2>&1 | tee -a "$logf"; then
     return 0
   fi
@@ -251,6 +270,10 @@ run_aggregate() { # one call with all targets
 run_per_target() {
   local t="$1" script="$SCRIPT_DIR/scripts/actions/$ACTION.sh" logf="$LOG_DIR/build.log"
   [ -f "$script" ] || die "missing action script: $script"
+  if ! : >>"$logf" 2>/dev/null; then
+    warn "cannot write $logf; continuing without a log file"
+    logf=/dev/null
+  fi
   echo
   log "===== $t ($(repo_label "$t")) ====="
   if bash "$script" "$t" "${EXTRA[@]}" 2>&1 | tee -a "$logf"; then
@@ -267,10 +290,15 @@ case "$ACTION" in
     if [ -n "${DOWNLOAD_REF:-}" ]; then
       echo
       log "===== download ${DOWNLOAD_REF} ====="
-      if bash "$SCRIPT_DIR/scripts/actions/download.sh" registry "$DOWNLOAD_REF" 2>&1 | tee -a "$LOG_DIR/build.log"; then
+      dlog="$LOG_DIR/build.log"
+      if ! : >>"$dlog" 2>/dev/null; then
+        warn "cannot write $dlog; continuing without a log file"
+        dlog=/dev/null
+      fi
+      if bash "$SCRIPT_DIR/scripts/actions/download.sh" registry "$DOWNLOAD_REF" 2>&1 | tee -a "$dlog"; then
         log "done: $DOWNLOAD_REF"
       else
-        die "failed: --download $DOWNLOAD_REF (log: $LOG_DIR/build.log)"
+        die "failed: --download $DOWNLOAD_REF (log: $dlog)"
       fi
       echo
       log "all done. action: download  image: $DOWNLOAD_REF"
