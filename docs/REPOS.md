@@ -72,7 +72,7 @@
   全量无预构建实测 3h58m。
 
 **rvocs 侧**：`--build` 直接委派（`--stage` 可透传），`--download` 走 `docker pull`；
-容器启动暂由厂商仓库 README 的 `docker run` 示例承担（`--deploy` 尚未开放）。
+容器启动见 [DEPLOY.md](DEPLOY.md) 的 `docker run` 示例（`--deploy` 尚未开放）。
 
 ---
 

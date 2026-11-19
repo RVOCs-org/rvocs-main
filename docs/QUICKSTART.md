@@ -80,9 +80,22 @@ RVOCS_TENSTORRENT_DIR=/data/tenstorrent ./rvocs.sh --target tt-stack --build
 
 ### 2.3 起服务
 
-`--deploy` 暂未开放（部署路径还在完善）。镜像拉取/构建完成后，按
-`rvocs-hcs-tenstorrent` README 里的 `docker run` 示例启动即可；默认模型 `Qwen3-8B`、
-端口 `8000`、设备 `n300`。服务起来后是 OpenAI 兼容接口，例如 `http://127.0.0.1:8000/v1`。
+`--deploy` 暂未开放，用 `docker run` 启动。最短示例（x86_64，在线拉取权重）：
+
+```bash
+docker run -d --name tt-vllm --ipc host \
+  --device /dev/tenstorrent:/dev/tenstorrent \
+  --mount type=bind,src=/dev/hugepages-1G,dst=/dev/hugepages-1G \
+  --volume tt-cache:/home/container_app_user/cache_root \
+  -p 8000:8000 rvocs-vllm-tt-amd64:v0.1.0 \
+  --model Qwen/Qwen3-8B --tt-device n300
+```
+
+默认模型 `Qwen3-8B`、端口 `8000`、设备 `n300`；服务是 OpenAI 兼容接口（`http://127.0.0.1:8000/v1`）。
+riscv64 主机把镜像换成 `rvocs-vllm-tt-riscv64:v0.1.0`。
+
+离线部署（标准 HF cache、`HF_HUB_OFFLINE`、`--env-file`、鉴权、参数逐条说明、故障排查）
+见 [DEPLOY.md](DEPLOY.md)。
 
 ### 2.4 验收点
 

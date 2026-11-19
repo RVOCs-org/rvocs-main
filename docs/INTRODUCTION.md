@@ -134,8 +134,8 @@ cd rvocs-main
 
 ### ④ 启动 OpenAI 兼容服务
 
-`--deploy` 暂未开放；镜像拉取/构建后按 `rvocs-hcs-tenstorrent` README 的 `docker run`
-示例启动（默认模型 Qwen3-8B，端口 8000）。
+`--deploy` 暂未开放；镜像拉取/构建后用 `docker run` 启动，完整示例见
+[DEPLOY.md](DEPLOY.md)（默认模型 Qwen3-8B，端口 8000）。
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \

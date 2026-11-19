@@ -158,7 +158,7 @@ Available image tags are listed in [`RELEASES.list`](https://github.com/RVOCs-or
 ### ④ Start the OpenAI-compatible service
 
 `--deploy` is not exposed yet; start the pulled/built image with the `docker run`
-example in the `rvocs-hcs-tenstorrent` README (default model Qwen3-8B, port 8000).
+example in [DEPLOY.md](DEPLOY.md) (default model Qwen3-8B, port 8000).
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \

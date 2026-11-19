@@ -55,15 +55,28 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 ./rvocs.sh --clone                         # 按需获取厂商仓库
 
 # ① 宿主机：内核驱动、tt-smi / tt-flash 等工具、1G 大页
-./rvocs.sh --target tt-host --arch riscv --install
+./rvocs.sh --target tt-host --arch x86 --install          # riscv64 主机用 --arch riscv
 
 # ② 推理镜像：产物清单见 --list-releases，拉现成镜像或源码构建
-./rvocs.sh --target tt-stack --arch riscv --download      # 或 --build
+./rvocs.sh --target tt-stack --arch x86 --download        # 或 --build；riscv64 用 --arch riscv
 
-# ③ 起服务：--deploy 尚未开放，按 rvocs-hcs-tenstorrent 的 README 用 docker run 启动
+# ③ 起服务：--deploy 尚未开放，用 docker run 启动（完整参数见 docs/DEPLOY.md）
 ```
 
-镜像的启动示例见厂商仓库 README（默认模型 `Qwen3-8B`、端口 `8000`）。
+最小启动示例（x86_64，在线拉取权重）：
+
+```bash
+docker run -d --name tt-vllm --ipc host \
+  --device /dev/tenstorrent:/dev/tenstorrent \
+  --mount type=bind,src=/dev/hugepages-1G,dst=/dev/hugepages-1G \
+  --volume tt-cache:/home/container_app_user/cache_root \
+  -p 8000:8000 rvocs-vllm-tt-amd64:v0.1.0 \
+  --model Qwen/Qwen3-8B --tt-device n300
+```
+
+默认模型 `Qwen3-8B`、端口 `8000`；riscv64 主机把镜像换成 `rvocs-vllm-tt-riscv64:v0.1.0`。
+离线部署（标准 HF cache、`--env-file`、鉴权、故障排查）见 [docs/DEPLOY.md](docs/DEPLOY.md)。
+
 先看看环境是否就绪：`./rvocs.sh --doctor`。
 
 其它加速器与分阶段构建见 [docs/QUICKSTART.md](docs/QUICKSTART.md)。
@@ -117,6 +130,7 @@ git clone https://github.com/RVOCs-org/rvocs-main.git && cd rvocs-main
 | [RELEASES.list](RELEASES.list) | 已发布产物清单（`--list-releases` / `--download` 的数据源） |
 | [RELEASENOTES.md](RELEASENOTES.md) | 已发布的镜像与交付包、对应上游基线、获取方式 |
 | [docs/QUICKSTART.md](docs/QUICKSTART.md) | 分场景上手：自检、驱动与工具、镜像、部署 |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | 部署指南：前置检查、模型权重、`docker run` 参数、验证与故障排查 |
 | [docs/CLI.md](docs/CLI.md) | 全部参数、动作语义、环境变量 |
 | [docs/REPOS.md](docs/REPOS.md) | 各仓库的职责与产物 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 分层与设计取舍 |

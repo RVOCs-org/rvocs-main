@@ -6,7 +6,7 @@
 
 - 新增 `--list-releases`（按 target + 架构列出已发布产物）与 `--clone`（显式获取厂商仓库）；
 - 移除 `--status` / `--verify` / `--bom` / `--sync` / `--dry-run` / `--yes` / `--no-clone`，
-  `--deploy` 暂不开放（容器启动见厂商仓库 README 的 `docker run` 示例）；
+  `--deploy` 暂不开放（容器启动见 `docs/DEPLOY.md` 的 `docker run` 示例）；
 - 发布产物集中到 `RELEASES.list` 维护，`--download` 与内部部署 helper 共用同一份清单。
 
 ### 1. 产物总览
@@ -105,7 +105,7 @@
 | `tt-host` | x86_64 已发布 `.deb`；riscv64 交付包暂未发布 |
 | `tt-stack` | x86_64 已发布镜像；riscv64 镜像暂未发布 |
 | `therock` | riscv64 已发布镜像；x86_64 待支持 |
-| `--deploy` | 暂未开放，按厂商仓库 README 的 `docker run` 示例启动 |
+| `--deploy` | 暂未开放，按 `docs/DEPLOY.md` 的 `docker run` 示例启动 |
 | 多卡 / 大模型 | tp=2 / tp=4 数据见上；更大规模组合仍在推进 |
 
 ### 4. 校验方式

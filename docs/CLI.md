@@ -52,7 +52,7 @@
 | `-h, --help` | — | 显示帮助 |
 | `-- <args...>` | — | 原样透传给子仓库构建脚本 |
 
-**暂未开放**：`--deploy`（部署路径还在完善，镜像请按厂商仓库 README 的 `docker run` 示例启动）。
+**暂未开放**：`--deploy`（部署路径还在完善，镜像请按 [DEPLOY.md](DEPLOY.md) 的 `docker run` 示例启动）。
 
 **已移除的选项**：`--status`、`--verify`、`--bom`、`--sync`、`--dry-run`、`--yes` / `-y`、`--no-clone`。有副作用的动作（`--install`）直接执行；仓库获取统一走 `--clone`。
 
