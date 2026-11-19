@@ -67,7 +67,7 @@ RVOCS_TENSTORRENT_DIR=/data/tenstorrent ./rvocs.sh --target tt-stack --build
 ```bash
 ./rvocs.sh --list-releases                            # 看已发布产物
 ./rvocs.sh --target tt-stack --arch riscv --download # 拉最新版本
-./rvocs.sh --target tt-stack --arch riscv --build    # 或从源码构建（2–4 小时）
+./rvocs.sh --target tt-stack --arch riscv --build    # 源码构建首次：riscv64 约 2–4 h，x86_64 约 5–6 h
 ```
 
 构建可用 `--stage` 分段：
@@ -119,7 +119,7 @@ AMD ROCm 流程相同，target 换成 `therock`（别名 `amd`）：
 
 启动同样暂未开放 `--deploy`，按 `rvocs-hcs-amd` README 的 `docker run` 示例操作。
 
-x86 主机上同一 target 走官方预构建产物，通常一小时以内即可出镜像。
+`therock` 的 x86_64 路径使用官方预构建产物，分钟级出镜像；`tt-stack` 的 x86_64 默认源码构建，首次约 5–6 小时。
 支持的栈与加速器见 `./rvocs.sh --list-targets`。
 
 ---

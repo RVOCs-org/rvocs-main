@@ -23,7 +23,12 @@ args=(--arch "$ARCH" --proxy "$PROXY_MODE")
 case "$TARGET" in
   tt-stack)
     log "building the Tenstorrent stack image from source (tt-metal + vLLM + plugin)"
-    log "expected: about 2-4 hours on riscv64 with the bundled SFPI package, +90 min when it has to be built"
+    case "$ARCH" in
+      riscv64)
+        log "expected: about 2-4 hours on riscv64 with the bundled SFPI package, +90 min when it has to be built" ;;
+      *)
+        log "expected: about 5-6 hours for the first x86_64 source build; minutes when the Docker layers are cached" ;;
+    esac
     log "output image: $(image_tag_for tt-stack "$ARCH")"
     ;;
   therock)
