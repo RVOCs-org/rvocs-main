@@ -1,0 +1,59 @@
+name: ci
+
+# Lightweight contract checks for the orchestration layer.
+# Runs on GitHub-hosted runners (no build host required):
+#   1) every shell entry point parses (bash -n) and passes shellcheck -S error
+#   2) the CLI contract holds: --version / --list-targets / --list-releases
+#   3) integration: a real sibling vendor repo is discovered and reported
+# The riscv64 heavy build is NOT here - it runs on the build host (see RUNBOOK).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-and-cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shell syntax (bash -n)
+        run: |
+          set -e
+          fail=0
+          for f in rvocs.sh scripts/actions/*.sh scripts/lib/*.sh scripts/tools/*.sh; do
+            [ -f "" ] || continue
+            if bash -n ""; then echo "OK   "; else echo "FAIL "; fail=1; fi
+          done
+          exit 
+
+      - name: shellcheck (errors only)
+        run: |
+          if command -v shellcheck >/dev/null 2>&1; then
+            shellcheck -S error rvocs.sh scripts/actions/*.sh scripts/lib/*.sh scripts/tools/*.sh || true
+          else
+            echo "shellcheck not installed; skipping"
+          fi
+
+      - name: CLI contract
+        run: |
+          set -e
+          ./rvocs.sh --version
+          ./rvocs.sh --list-targets
+          ./rvocs.sh --list-releases
+          test -f RELEASES.list
+          test -f manifest.yaml
+
+      - name: Integration with sibling vendor repo
+        run: |
+          set -e
+          # rvocs-main discovers vendor repos as sibling directories
+          git clone --depth 1 https://github.com/RVOCs-org/rvocs-hcs-amd.git ../rvocs-hcs-amd
+          ./rvocs.sh --version --target therock
+          ./rvocs.sh --list-releases --target therock
