@@ -34,8 +34,16 @@ fi
 if [ -n "$deb" ]; then
   log "package: $deb"
   if have_cmd apt-get; then
-    log "installing with apt-get (sudo)"
-    run sudo apt-get install -y "$deb"
+    # apt skips a package that is already at the same version, so running
+    # --install again after /opt/tt-deps/uninstall.sh would do nothing (the
+    # postinst never runs and the driver/tools stay removed). Force it.
+    if dpkg-query -W -f='${Status}' tt-deps 2>/dev/null | grep -q 'install ok installed'; then
+      log "tt-deps is already installed; forcing a reinstall so the postinst runs again"
+      run sudo apt-get install --reinstall -y "$deb"
+    else
+      log "installing with apt-get (sudo)"
+      run sudo apt-get install -y "$deb"
+    fi
   else
     log "installing with dpkg (sudo)"
     run sudo dpkg -i "$deb"
