@@ -79,6 +79,20 @@ docker run -d --name tt-vllm --ipc host \
 
 先看看环境是否就绪：`./rvocs.sh --doctor`。
 
+### 重装与卸载（宿主机依赖）
+
+```bash
+./rvocs.sh --target tt-host --arch x86 --install          # 同版本已安装时自动 --reinstall
+./rvocs.sh --target tt-host --arch x86 --download         # 只下载到 work/packages
+
+sudo /opt/tt-deps/uninstall.sh                            # 只卸系统状态，保留包注册与 /opt/tt-deps
+sudo /opt/tt-deps/uninstall.sh --purge                    # 彻底卸载：/etc/tenstorrent + dpkg -r
+sudo apt purge tt-deps                                    # 或直接走 apt
+```
+
+默认安装会对 n300 升级固件；不想刷用 `TT_DEPS_SKIP_FLASH=1 ./rvocs.sh ... --install`。
+重装/卸载的完整说明见 [docs/CLI.md](docs/CLI.md#9-安装重装与卸载tt-host)。
+
 其它加速器与分阶段构建见 [docs/QUICKSTART.md](docs/QUICKSTART.md)。
 
 ---

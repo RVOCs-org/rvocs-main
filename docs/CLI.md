@@ -170,3 +170,30 @@ AMD 栈的 pytorch / triton / torchvision / vllm **pin 来自 `rvocs-hcs-amd/con
 | 构建类动作（install / download / build / deploy） | `work/logs/build.log` |
 
 退出码：`0` 成功；`1` 参数错误、前置校验失败、`--doctor` 有阻塞 FAIL 或子仓库动作失败。`--doctor` 的 FAIL 分 blocking / non-blocking 两类，后者（如 riscv64 内核过低）只影响 `--target therock`，不阻塞其它路径。
+
+---
+
+## 9. 安装、重装与卸载（tt-host）
+
+`--install` 取 `RELEASES.list` 里该架构的最新 `.deb`（没有现成产物时回退本地构建），
+下载到 `work/packages` 后调用 apt：
+
+| 场景 | 命令 | 行为 |
+|---|---|---|
+| 全新安装 | `./rvocs.sh --target tt-host --arch x86 --install` | `apt-get install ./rvocs-tt-deps_<ver>_<arch>.deb` |
+| 同版本重装 | 同上 | 检测到已安装同版本 → `apt-get install --reinstall`，postinst 重新执行 |
+| 只下载 | `./rvocs.sh --target tt-host --arch x86 --download` | 落到 `work/packages/`，校验 digest，不安装 |
+| 升级 | 先 `--download` 新版本，再 `--install`；或 `sudo apt install ./newer.deb` | dpkg 执行旧版 prerm → 新版 postinst |
+| 跳过固件刷写 | `TT_DEPS_SKIP_FLASH=1 ./rvocs.sh ... --install` | postinst 透传 `--skip-flash` |
+
+卸载在**目标机**上执行（`rvocs.sh` 不提供卸载动作）：
+
+```bash
+sudo /opt/tt-deps/uninstall.sh          # 只卸系统状态，保留 dpkg 注册与 /opt/tt-deps
+sudo /opt/tt-deps/uninstall.sh --purge  # 彻底卸载：/etc/tenstorrent + dpkg -r
+sudo apt purge tt-deps                  # 或直接走 apt（prerm 会调用 uninstall.sh）
+```
+
+`uninstall.sh` 之后同版本重新安装必须用 `--reinstall`（或先 `--purge` 再普通安装），
+否则 apt 会提示 “already the newest version”；`--install` 已内置该判断。
+安装/重装默认对 n300 刷 `firmware.n300`（当前 `19.17.1`），`--skip-flash` / `TT_DEPS_SKIP_FLASH=1` 可跳过。

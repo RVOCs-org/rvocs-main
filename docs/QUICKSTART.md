@@ -62,6 +62,9 @@ RVOCS_TENSTORRENT_DIR=/data/tenstorrent ./rvocs.sh --target tt-stack --build
 1G hugepages（开机持久）、udev 规则。默认从 `RELEASES.list` 里最新版本的 `.deb` 安装；
 没有现成交付包时回退到本地构建。
 
+安装末尾会对 n300 执行固件升级（`firmware.n300`，当前 `19.17.1`）；不想刷用
+`TT_DEPS_SKIP_FLASH=1 ./rvocs.sh ... --install`。
+
 ### 2.2 推理镜像
 
 ```bash
@@ -136,10 +139,27 @@ AMD ROCm 流程相同，target 换成 `therock`（别名 `amd`）：
 
 ---
 
-## 5. 清理
+## 5. 卸载与重装
 
 ```bash
-(cd work/rvocs-tt-deps-riscv64 && sudo ./uninstall.sh)   # 卸载宿主机依赖（--keep-kmd / --purge）
-docker image rm <tag> && docker builder prune             # 镜像与构建缓存
-rm -rf work/                                             # rvocs 工作区（不影响子仓库源码）
+# 重装同版本（改配置、排障后重跑 postinst；同版本会自动 --reinstall）
+./rvocs.sh --target tt-host --arch x86 --install
+
+# 只下载最新 .deb，不安装
+./rvocs.sh --target tt-host --arch x86 --download
+
+# 卸载系统状态（驱动/工具/大页/udev），保留 dpkg 注册与 /opt/tt-deps
+sudo /opt/tt-deps/uninstall.sh
+
+# 彻底卸载（连 /etc/tenstorrent 配置与 dpkg 注册一起清掉）
+sudo /opt/tt-deps/uninstall.sh --purge
+sudo apt purge tt-deps
+
+# 镜像与工作区
+docker image rm <tag> && docker builder prune
+rm -rf work/                                             # 不影响子仓库源码
 ```
+
+未 `--purge` 时，同版本重装必须用 `--reinstall`（或 `./rvocs.sh ... --install`），
+否则 apt 会提示 “already the newest version”。安装默认对 n300 刷固件，
+不想刷用 `TT_DEPS_SKIP_FLASH=1`。
