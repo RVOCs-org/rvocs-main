@@ -96,7 +96,7 @@
 - **硬前置**：gfortran（只有 gfortran-15 时要软链）、打过补丁的 patchelf（kpack 拆包）、
   `CppHeaderParser` / `msgpack` / `zstandard`、`--jobs` 与内存匹配、~200 GB 磁盘。
 - **参考耗时**（80 核 riscv64 + R9700）：TheRock 17h31m（增量续跑）、四个 wheel ~5h、
-  镜像 49 min（17.4 GB）、压测 5.5h（最优 740 tok/s @ max-num-seqs=96）。
+  镜像 16–50 min（缓存/冷启动；v0.2.2 为 16.2 GB，docker images）、压测 5.5h（最优 740 tok/s @ max-num-seqs=96）。
 - **已知限制**：已有构建目录不支持切换 GPU family 后重配（需 `baseline.sh clean`）；
   镜像只含用户态（宿主提供 amdgpu 驱动与 `/dev/kfd`、`/dev/dri`）。
 
