@@ -65,10 +65,6 @@
 | sfpi | commit（`7.78.0` 标签已指向别处） | `fe971db5` | riscv-tt-elf 交叉工具链源码 |
 | tt-smi（镜像内） | `v3.1.1` | `a2791bfe` | 独立 venv 中的设备工具 |
 
-测试数据：
-
-![Qwen3-8B / n300 单请求 decode rate（ISL≈1024，OSL=128）](docs/assets/v1.0.1/Qwen3-8B_n300_decode_rate.png)
-
 #### 2.3 `rvocs-vllm-therock10.0-r9700-riscv64:v0.2.2` — AMD 推理镜像
 
 - 平台：riscv64 宿主（内核 ≥ `7.0.0-31-generic`）+ Radeon AI PRO R9700（gfx1201 / gfx120X-all）；
@@ -91,11 +87,10 @@
 | vLLM | `v0.29.0` | `98dff2a8` | 镜像内 wheel 自报 `0.29.1.dev0+g98dff2a81` |
 | RCCL / NCCL | ROCm 10.0.0 内置 | — | 未单独 pin |
 
-测试数据：
+#### 2.4 测试报告
 
-![vLLM Bench 单请求 decode rate（镜像 v0.2.2，vLLM 0.29.1）](docs/assets/v1.0.1/vllm-bench-decode-v0.2.2.png)
-
-测试环境：Radeon AI PRO R9700（按 tp / ep 配置）、ROCm 10.0.0、镜像内 vLLM 0.29.1（wheel 版本）。
+测试结果不在本文件中展开；请到 [Releases v1.0.1](https://github.com/RVOCs-org/rvocs-main/releases/tag/v1.0.1)
+下载 `rvocs-v1.0.1.TestReport.xlsx`。
 
 ### 3. 支持范围与已知限制
 
@@ -106,7 +101,7 @@
 | `tt-stack` | x86_64 已发布镜像；riscv64 镜像暂未发布 |
 | `therock` | riscv64 已发布镜像；x86_64 待支持 |
 | `--deploy` | 暂未开放，按 `docs/DEPLOY.md` 的 `docker run` 示例启动 |
-| 多卡 / 大模型 | tp=2 / tp=4 数据见上；更大规模组合仍在推进 |
+| 多卡 / 大模型 | 测试数据见 `rvocs-v1.0.1.TestReport.xlsx`；更大规模组合仍在推进 |
 
 ### 4. 校验方式
 
